@@ -1,0 +1,23 @@
+.notification {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: #ebf8f2;
+  color: #22543d;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(34, 84, 61, 0.12);
+}
+
+.notification.success {
+  border-color: #2f855a;
+  background: #ebf8f2;
+  color: #22543d;
+}
+
+.notification.error {
+  border-color: #e53e3e;
+  background: #fff5f5;
+  color: #c53030;
+}
