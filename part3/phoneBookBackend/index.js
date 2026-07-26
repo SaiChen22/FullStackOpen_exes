@@ -70,7 +70,7 @@ app.delete('/api/phonebook/:id', (request, response) => {
     response.status(204).end()
   })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/phonebook', (request, response) => {
     const id = Math.floor(Math.random() * 1000000).toString()
     const { name, number } = request.body
     if (!name || !number) {
