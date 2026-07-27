@@ -92,6 +92,9 @@ const App = () => {
         setNewName('')
         setNewNumber('')
       })
+      .catch(error => {
+        setNotification({ message: 'Error adding new person', type: 'error' })
+      })
   }
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this person?')) {
