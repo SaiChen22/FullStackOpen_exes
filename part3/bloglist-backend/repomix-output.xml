@@ -1,0 +1,386 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+controllers/
+  blogs.js
+models/
+  blog.js
+request/
+  test.rest
+tests/
+  average.test.js
+  list_helper.test.js
+  reverse.test.js
+utils/
+  config.js
+  for_testing.js
+  list_healper.js
+  logger.js
+  middleware.js
+app.js
+index.js
+package.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="controllers/blogs.js">
+import express from 'express'
+import Blog from '../models/blog.js'
+const blogsRouter = express.Router()
+
+blogsRouter.get('/', async (request, response) => {
+  const blogs = await Blog.find({})
+  response.json(blogs)
+})
+
+blogsRouter.post('/', async (request, response) => {
+    const blog = new Blog(request.body)
+    blog.save().then(result => {
+      response.status(201).json(result)
+    })
+})
+
+export default blogsRouter
+</file>
+
+<file path="models/blog.js">
+import mongoose from 'mongoose'
+
+const blogSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  author: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  likes: {
+    type: Number,
+    default: 0
+  }
+})
+
+blogSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+export default mongoose.model('Blog', blogSchema)
+</file>
+
+<file path="request/test.rest">
+http://localhost:3003/api/blogs
+
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+
+{
+  "title": "My Second Blog",
+  "author": "John Doee",
+  "url": "https://example.com/my-second-blog",
+  "likes": 5
+}
+</file>
+
+<file path="tests/average.test.js">
+import {test,describe} from 'node:test'
+import assert from 'node:assert'
+import {reverse,average} from '../utils/for_testing.js'
+
+describe('average', () => {
+  test('of one value is the value itself', () => {
+    assert.strictEqual(average([1]), 1)
+  })
+
+  test('of many is calculated right', () => {
+    assert.strictEqual(average([1, 2, 3, 4, 5, 6]), 3.5)
+  })
+
+  test('of empty array is zero', () => {
+    assert.strictEqual(average([]), 0)
+  })
+})
+</file>
+
+<file path="tests/list_helper.test.js">
+import {test,describe} from 'node:test'
+import assert from 'node:assert'
+import listHelper from '../utils/list_healper.js'
+
+describe('total likes', () => {
+  const listWithOneBlog = [
+    {
+      _id: '5a422aa71b54a676234d17f8',
+      title: 'Go To Statement Considered Harmful',
+      author: 'Edsger W. Dijkstra',
+      url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf',
+      likes: 5,
+      __v: 0
+    }
+  ]
+
+  const listWithMultipleBlogs = [
+    {
+      _id: '5a422aa71b54a676234d17f8',
+      title: 'Go To Statement Considered Harmful',
+      author: 'Edsger W. Dijkstra',
+      url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf',
+      likes: 5,
+      __v: 0
+    },
+    {
+      _id: '5a422aa71b54a676234d17f9',
+      title: 'Another Blog',
+      author: 'John Doe',
+      url: 'https://example.com/blog2',
+      likes: 10,
+      __v: 0
+    }
+  ]
+
+  test('when list has only one blog, equals the likes of that', () => {
+    const result = listHelper.totalLikes(listWithOneBlog)
+    assert.strictEqual(result, 5)
+  })
+
+  test('Favorite blog is the one with the most likes', () => {
+    const result = listHelper.favoriteBlog(listWithMultipleBlogs)
+    assert.strictEqual(result.likes, 10)
+  })
+})
+</file>
+
+<file path="tests/reverse.test.js">
+import test from 'node:test'
+import assert from 'node:assert'
+import {reverse,average} from '../utils/for_testing.js'
+test('reverse of a', () => {
+  const result = reverse('a')
+
+  assert.strictEqual(result, 'a')
+})
+
+test('reverse of react', () => {
+  const result = reverse('react')
+
+  assert.strictEqual(result, 'tcaer')
+})
+
+test('reverse of saippuakauppias', () => {
+  const result = reverse('saippuakauppias')
+
+  assert.strictEqual(result, 'saippuakauppias')
+})
+</file>
+
+<file path="utils/config.js">
+import 'dotenv/config'
+
+const PORT = process.env.PORT || 3003
+const MONGODB_URI = process.env.MONGODB_URI
+
+export default {
+  PORT,
+  MONGODB_URI
+}
+</file>
+
+<file path="utils/for_testing.js">
+const reverse = (string) => {
+  return string
+    .split('')
+    .reverse()
+    .join('')
+}
+
+const average = array => {
+  const reducer = (sum, item) => {
+    return sum + item
+  }
+
+  return array.length === 0
+    ? 0
+    : array.reduce(reducer, 0) / array.length
+}
+
+export { reverse, average }
+</file>
+
+<file path="utils/list_healper.js">
+const dummy = (blogs) => {
+  return Number(1)
+}
+
+const totalLikes = (blogs) => {
+  return blogs.reduce((sum, blog) => sum + blog.likes, 0)
+}
+
+const favoriteBlog = (blogs) => {
+  return blogs.reduce((favorite, blog) => {
+    return blog.likes > favorite.likes ? blog : favorite
+  }, blogs[0])
+}
+
+export default { dummy, totalLikes, favoriteBlog }
+</file>
+
+<file path="utils/logger.js">
+const info = (...params) => {
+  console.log(...params)
+}
+
+const error = (...params) => {
+  console.error(...params)
+}
+
+export default {
+  info,
+  error
+}
+</file>
+
+<file path="utils/middleware.js">
+import logger from './logger.js'
+
+const unknownEndpoint = (request, response) => {
+  logger.info('Unknown endpoint:', request.path)
+  response.status(404).send({ error: 'Unknown endpoint' })
+}
+
+const errorHandler = (error, request, response, next) => {
+    logger.error(error.message)
+
+    if (error.name === 'CastError') {
+      response.status(400).send({ error: 'malformed id' })
+    } else if (error.name === 'ValidationError') {
+      response.status(400).send({ error: error.message })
+    } else {
+      next(error)
+    }
+}
+
+export default { unknownEndpoint, errorHandler }
+</file>
+
+<file path="app.js">
+import express from 'express'
+import cors from 'cors'
+import mongoose from 'mongoose'
+import config from './utils/config.js'
+import logger from './utils/logger.js'
+import middleware from './utils/middleware.js'
+import blogsRouter from './controllers/blogs.js'
+
+const app = express()
+
+logger.info('Application started')
+
+mongoose.connect(config.MONGODB_URI, {family: 4})
+        .then(() => {
+            logger.info('Connected to MongoDB')
+        })
+        .catch((error) => {
+            logger.error('Error connecting to MongoDB:', error)
+        })
+
+app.use(cors())
+app.use(express.json())
+app.use('/api/blogs', blogsRouter)
+app.use(middleware.unknownEndpoint)
+app.use(middleware.errorHandler)
+
+export default app
+</file>
+
+<file path="index.js">
+import app from './app.js'
+import logger from './utils/logger.js'
+import config from './utils/config.js'
+
+app.listen(config.PORT, () => {
+    logger.info(`Server running on port ${config.PORT}`)
+})
+</file>
+
+<file path="package.json">
+{
+  "name": "bloglist-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test",
+    "dev": "node --watch index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.13.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.8.0"
+  }
+}
+</file>
+
+</files>

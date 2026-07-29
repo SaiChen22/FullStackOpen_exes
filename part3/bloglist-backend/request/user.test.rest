@@ -1,0 +1,61 @@
+### 获取所有用户
+GET http://localhost:3003/api/users
+
+### 创建新用户
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "name": "Arto Hellas",
+  "password": "secretpassword"
+}
+###
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "mluukkai",
+  "name": "Matti Luukkainen",
+  "password": "secret"
+}
+
+### 登录成功测试
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "secretpassword"
+}
+
+### 密码错误测试（预期返回 401 Unauthorized）
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "wrongpassword"
+}
+
+### 1. 登录获取 token
+# @name login
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "secretpassword"
+}
+
+### 2. 使用 Token 创建博客
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "Token Authenticated Blog",
+  "author": "Arto Hellas",
+  "url": "https://example.com/blog",
+  "likes": 10
+}
