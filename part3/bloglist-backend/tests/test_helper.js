@@ -16,6 +16,19 @@ const initialBlogs = [
   }
 ]
 
+const initialUsers = [
+  {
+    username: 'root',
+    name: 'Superuser',
+    password: 'secret'
+  },
+  {
+    username: 'matti',
+    name: 'Matti Luukkainen',
+    password: 'salasana'
+  }
+]
+
 const nonExistingId = async () => {
   const blog = new Blog({
     title: 'willremovethissoon',
@@ -38,4 +51,4 @@ const usersInDb = async () => {
   return users.map(u => u.toJSON())
 }
 
-export { initialBlogs, nonExistingId, blogsInDb, usersInDb }
+export { initialBlogs, initialUsers, nonExistingId, blogsInDb, usersInDb }

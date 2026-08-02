@@ -2,3 +2,4 @@
 lec/**
 .gitignore
 **/.env
+**/coverage

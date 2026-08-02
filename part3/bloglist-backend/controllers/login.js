@@ -7,6 +7,7 @@ const loginRouter = express.Router()
 
 loginRouter.post('/', async (request, response) => {
   const { username, password } = request.body
+  console.log(username, password)
 
   // 1. 查找用户是否存在
   const user = await User.findOne({ username })
@@ -33,7 +34,7 @@ loginRouter.post('/', async (request, response) => {
   // 4. 返回 token 以及基本用户信息
   response
     .status(200)
-    .send({ token, username: user.username, name: user.name })
+    .send({ token, username: user.username, name: user.name, id: user._id })
 })
 
 export default loginRouter

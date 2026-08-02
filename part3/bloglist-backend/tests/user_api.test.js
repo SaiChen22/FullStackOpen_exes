@@ -5,16 +5,27 @@ import supertest from 'supertest'
 import bcrypt from 'bcrypt'
 import app from '../app.js'
 import User from '../models/user.js'
+import { initialUsers } from './test_helper.js'
 
 const api = supertest(app)
 
-describe('when there is initially one user in db', () => {
+describe('when there are initially users in db', () => {
   beforeEach(async () => {
     await User.deleteMany({})
 
-    const passwordHash = await bcrypt.hash('secret', 10)
-    const user = new User({ username: 'root', name: 'Superuser', passwordHash })
-    await user.save()
+    const userObjects = await Promise.all(
+      initialUsers.map(async user => {
+        const passwordHash = await bcrypt.hash(user.password, 10)
+        return new User({
+          username: user.username,
+          name: user.name,
+          passwordHash
+        })
+      })
+    )
+
+    const savePromises = userObjects.map(user => user.save())
+    await Promise.all(savePromises)
   })
 
   test('creation fails with 400 if username is too short', async () => {

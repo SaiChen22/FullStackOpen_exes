@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt'
 import app from '../app.js'
 import Blog from '../models/blog.js'
 import User from '../models/user.js'
-import { initialBlogs, blogsInDb } from './test_helper.js'
+import { initialBlogs, initialUsers, blogsInDb } from './test_helper.js'
 
 const api = supertest(app)
 
@@ -18,9 +18,20 @@ describe('when there is initially some blogs saved', () => {
     await User.deleteMany({})
 
     // 1. 创建测试用户
-    const passwordHash = await bcrypt.hash('secret', 10)
-    const user = new User({ username: 'root', name: 'Superuser', passwordHash })
-    await user.save()
+    const userObjects = await Promise.all(
+      initialUsers.map(async user => {
+        const passwordHash = await bcrypt.hash(user.password, 10)
+        return new User({
+          username: user.username,
+          name: user.name,
+          passwordHash
+        })
+      })
+    )
+
+    const savePromises = userObjects.map(user => user.save())
+    await Promise.all(savePromises)
+    const rootUser = userObjects.find(user => user.username === 'root')
 
     // 2. 登录获取 token
     const loginResponse = await api
@@ -30,7 +41,7 @@ describe('when there is initially some blogs saved', () => {
     token = loginResponse.body.token
 
     // 3. 将初始化博客绑定到该测试用户
-    const blogObjects = initialBlogs.map(blog => new Blog({ ...blog, user: user._id }))
+    const blogObjects = initialBlogs.map(blog => new Blog({ ...blog, user: rootUser._id }))
     const promiseArray = blogObjects.map(blog => blog.save())
     await Promise.all(promiseArray)
   })
