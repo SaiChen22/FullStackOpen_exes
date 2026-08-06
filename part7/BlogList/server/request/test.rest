@@ -1,0 +1,22 @@
+http://localhost:3003/api/blogs
+
+### 1. 登录获取 token
+# @name login
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "secretpassword"
+}
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "My Third Blog",
+  "author": "John Doee",
+  "url": "https://example.com/my-second-blog",
+  "likes": 5
+}

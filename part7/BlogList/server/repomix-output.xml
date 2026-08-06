@@ -1,0 +1,1753 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+controllers/
+  blogs.js
+  login.js
+  testing.js
+  users.js
+models/
+  blog.js
+  user.js
+request/
+  test.rest
+  user.test.rest
+src/
+  components/
+    Blog.jsx
+    Blog.test.jsx
+    BlogForm.jsx
+    BlogForm.test.jsx
+    Login.jsx
+    Login.test.jsx
+    Notification.jsx
+    Togglable.jsx
+  services/
+    blogs.js
+    login.js
+  App.jsx
+  main.jsx
+tests/
+  average.test.js
+  blog_api.test.ts
+  list_helper.test.js
+  reverse.test.js
+  test_helper.js
+  user_api.test.js
+utils/
+  config.js
+  for_testing.js
+  list_healper.js
+  logger.js
+  middleware.js
+app.js
+index.js
+package.json
+pnpm-workspace.yaml
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="controllers/blogs.js">
+import express from 'express'
+import Blog from '../models/blog.js'
+
+const blogsRouter = express.Router()
+
+blogsRouter.get('/', async (request, response) => {
+  const blogs = await Blog
+    .find({})
+    .populate('user', { username: 1, name: 1 })
+
+  response.json(blogs)
+})
+
+
+blogsRouter.post('/', async (request, response) => {
+  const body = request.body
+
+  // 直接从 request.user 中获取中间件解析出的用户对象
+  const user = request.user
+
+  if (!user) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+
+  const blog = new Blog({
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes || 0,
+    user: user._id
+  })
+
+  const savedBlog = await blog.save()
+
+  user.blogs = user.blogs.concat(savedBlog._id)
+  await user.save()
+
+  response.status(201).json(savedBlog)
+})
+
+blogsRouter.delete('/:id', async (request, response) => {
+  const user = request.user
+
+  if (!user) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+
+  const blog = await Blog.findById(request.params.id)
+
+  if (!blog) {
+    return response.status(404).json({ error: 'blog not found' })
+  }
+
+  // 比较创建者与当前登录用户 ID
+  if (blog.user.toString() !== user._id.toString()) {
+    return response.status(401).json({ error: 'only the creator can delete this blog' })
+  }
+
+  await Blog.findByIdAndDelete(request.params.id)
+  response.status(204).end()
+})
+
+blogsRouter.put('/:id', async (request, response) => {
+  const { title, author, url, likes } = request.body
+
+  const updatedBlog = await Blog.findByIdAndUpdate(
+    request.params.id,
+    { title, author, url, likes },
+    { new: true, runValidators: true, context: 'query' }
+  )
+
+  if (updatedBlog) {
+    response.json(updatedBlog)
+  } else {
+    response.status(404).end()
+  }
+})
+
+export default blogsRouter
+</file>
+
+<file path="controllers/login.js">
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import express from 'express'
+import User from '../models/user.js'
+
+const loginRouter = express.Router()
+
+loginRouter.post('/', async (request, response) => {
+  const { username, password } = request.body
+  console.log(username, password)
+
+  // 1. 查找用户是否存在
+  const user = await User.findOne({ username })
+
+  // 2. 校验密码是否正确
+  const passwordCorrect = user === null
+    ? false
+    : await bcrypt.compare(password, user.passwordHash)
+
+  if (!(user && passwordCorrect)) {
+    return response.status(401).json({
+      error: 'invalid username or password'
+    })
+  }
+
+  // 3. 构建 payload 并生成 token
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+
+  const token = jwt.sign(userForToken, process.env.SECRET)
+
+  // 4. 返回 token 以及基本用户信息
+  response
+    .status(200)
+    .send({ token, username: user.username, name: user.name, id: user._id })
+})
+
+export default loginRouter
+</file>
+
+<file path="controllers/testing.js">
+import Blog from '../models/blog.js'
+import User from '../models/user.js'
+import express from 'express'
+
+const router = express.Router()
+
+router.post('/reset', async (req, res) => {
+  await Blog.deleteMany({})
+  await User.deleteMany({})
+  res.status(204).end()
+})
+
+export default router
+</file>
+
+<file path="controllers/users.js">
+import bcrypt from 'bcrypt'
+import express from 'express'
+import User from '../models/user.js'
+
+const usersRouter = express.Router()
+
+usersRouter.get('/', async (request, response) => {
+  // 使用 populate 展开 blogs 关联信息，只保留 url, title, author, id
+  const users = await User
+    .find({})
+    .populate('blogs', { url: 1, title: 1, author: 1 })
+
+  response.json(users)
+})
+
+usersRouter.post('/', async (request, response) => {
+  const { username, name, password } = request.body
+
+  if (!username || !password) {
+    return response.status(400).json({ 
+      error: 'both username and password are required' 
+    })
+  }
+
+  if (username.length < 3 || password.length < 3) {
+    return response.status(400).json({
+      error: 'username and password must be at least 3 characters long'
+    })
+  }
+
+  const saltRounds = 10
+  const passwordHash = await bcrypt.hash(password, saltRounds)
+
+  const user = new User({
+    username,
+    name,
+    passwordHash,
+  })
+
+  const savedUser = await user.save()
+
+  response.status(201).json(savedUser)
+})
+
+export default usersRouter
+</file>
+
+<file path="models/blog.js">
+import mongoose from 'mongoose'
+
+const blogSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  author: {
+    type: String,
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  likes: {
+    type: Number,
+    default: 0
+  },
+  // 新增 user 字段，关联 User 模型
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
+})
+
+blogSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+export default mongoose.model('Blog', blogSchema)
+</file>
+
+<file path="models/user.js">
+import mongoose from 'mongoose'
+
+const userSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  name: String,
+  passwordHash: String,
+  blogs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Blog'
+    }
+  ]
+})
+
+userSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+    // 严禁将 passwordHash 返回给客户端
+    delete returnedObject.passwordHash
+  }
+})
+
+const User = mongoose.model('User', userSchema)
+
+export default User
+</file>
+
+<file path="request/test.rest">
+http://localhost:3003/api/blogs
+
+### 1. 登录获取 token
+# @name login
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "secretpassword"
+}
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "My Third Blog",
+  "author": "John Doee",
+  "url": "https://example.com/my-second-blog",
+  "likes": 5
+}
+</file>
+
+<file path="request/user.test.rest">
+### 获取所有用户
+GET http://localhost:3003/api/users
+
+### 创建新用户
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "name": "Arto Hellas",
+  "password": "secretpassword"
+}
+###
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "root",
+  "name": "RootUser",
+  "password": "secret"
+}
+
+### 登录成功测试
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "secretpassword"
+}
+
+### 密码错误测试（预期返回 401 Unauthorized）
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "wrongpassword"
+}
+
+### 1. 登录获取 token
+# @name login
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "hellas",
+  "password": "secretpassword"
+}
+
+### 2. 使用 Token 创建博客
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+  "title": "Token Authenticated Blog",
+  "author": "Arto Hellas",
+  "url": "https://example.com/blog",
+  "likes": 10
+}
+</file>
+
+<file path="src/components/Blog.jsx">
+// src/components/Blog.jsx
+
+const Blog = ({ blog, updateLike, deleteBlog, currentUser }) => {
+  
+  const blogStyle = {
+    paddingTop: 10,
+    paddingLeft: 2,
+    border: 'solid',
+    borderWidth: 1,
+    marginBottom: 5
+  }
+
+  const removeButtonStyle = {
+    backgroundColor: '#008CBA',
+    color: 'white',
+    border: 'none',
+    borderRadius: 3,
+    padding: '3px 8px',
+    cursor: 'pointer',
+    marginTop: 5
+  }
+
+  
+
+  const blogOwnerId = typeof blog.user === 'string' ? blog.user : blog.user?.id
+  const blogOwnerUsername = typeof blog.user === 'string' ? null : blog.user?.username
+  const showDeleteButton = currentUser && (
+    blogOwnerId === currentUser.id || blogOwnerUsername === currentUser.username
+  )
+  const showLikeButton = Boolean(currentUser)
+
+  return (
+    <div style={blogStyle}>
+      <div>
+        <h2>{blog.title}</h2>
+        <p>{blog.author}</p>
+      </div>
+
+      <div>
+        <div>{blog.url}</div>
+        <div>likes {blog.likes}</div>
+        <div>{blog.user ? blog.user.name || blog.user.username : ''}</div>
+
+        {showLikeButton && (
+          <div>
+            <button type="button" onClick={() => updateLike(blog.id)}>like</button>
+          </div>
+        )}
+
+        {showDeleteButton && (
+          <div>
+            <button style={removeButtonStyle} onClick={() => deleteBlog(blog)}>
+              delete
+            </button>
+          </div>
+        )}
+        </div>
+    </div>
+  )
+}
+
+export default Blog
+</file>
+
+<file path="src/components/Blog.test.jsx">
+import Blog from './Blog'
+import {screen,render} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+test('shows blog details to unauthenticated users without action buttons', () => {
+  const blog = {
+    title: 'Component testing is done with react-testing-library',
+    author: 'John Doe',
+    url: 'http://example.com',
+    likes: 5,
+    user: {
+      id: 'creator-1',
+      username: 'creator',
+      name: 'Creator One'
+    }
+  }
+
+  render(<Blog blog={blog} currentUser={null} />)
+
+  const title = screen.getByText('Component testing is done with react-testing-library')
+  const author = screen.getByText('John Doe')
+  const url = screen.getByText('http://example.com')
+  const likes = screen.getByText('likes 5')
+  const likeButton = screen.queryByRole('button', {name: 'like'})
+  const deleteButton = screen.queryByRole('button', {name: 'delete'})
+
+  expect(title).toBeInTheDocument()
+  expect(author).toBeInTheDocument()
+  expect(url).toBeInTheDocument()
+  expect(likes).toBeInTheDocument()
+  expect(likeButton).not.toBeInTheDocument()
+  expect(deleteButton).not.toBeInTheDocument()
+})
+
+test('shows only the like button to authenticated users who are not the creator', () => {
+    const blog = {
+      title: 'Component testing is done with react-testing-library',
+      author: 'John Doe',
+      url: 'http://example.com',
+      likes: 5,
+      user: {
+        id: 'creator-1',
+        username: 'creator',
+        name: 'Creator One'
+      }
+    }
+    const currentUser = {
+      id: 'user-2',
+      username: 'reader',
+      name: 'Reader Two'
+    }
+
+    render(<Blog blog={blog} currentUser={currentUser} updateLike={vi.fn()} deleteBlog={vi.fn()} />)
+
+    const likeButton = screen.getByRole('button', {name: 'like'})
+    const deleteButton = screen.queryByRole('button', {name: 'delete'})
+
+    expect(likeButton).toBeInTheDocument()
+    expect(deleteButton).not.toBeInTheDocument()
+  })
+
+test('shows the delete button to the blog creator', () => {
+  const blog = {
+    title: 'Component testing is done with react-testing-library',
+    author: 'John Doe',
+    url: 'http://example.com',
+    likes: 5,
+    user: {
+      id: 'creator-1',
+      username: 'creator',
+      name: 'Creator One'
+    }
+  }
+  const currentUser = {
+    id: 'creator-1',
+    username: 'creator',
+    name: 'Creator One'
+  }
+
+  render(<Blog blog={blog} currentUser={currentUser} updateLike={vi.fn()} deleteBlog={vi.fn()} />)
+
+  const likeButton = screen.getByRole('button', {name: 'like'})
+  const deleteButton = screen.getByRole('button', {name: 'delete'})
+
+  expect(likeButton).toBeInTheDocument()
+  expect(deleteButton).toBeInTheDocument()
+})
+
+test('calls like handler twice when like button is clicked twice', async () => {
+  const mockUpdateLike = vi.fn()
+  const blog = {
+    title: 'Component testing is done with react-testing-library',
+    author: 'John Doe',
+    url: 'http://example.com',
+    likes: 5,
+    user: {
+      id: 'creator-1',
+      username: 'creator',
+      name: 'Creator One'
+    }
+  }
+  const currentUser = {
+    id: 'user-2',
+    username: 'reader',
+    name: 'Reader Two'
+  }
+  const user = userEvent.setup()
+
+  render(<Blog blog={blog} currentUser={currentUser} updateLike={mockUpdateLike} deleteBlog={vi.fn()} />)
+
+  const likeButton = screen.getByRole('button', {name: 'like'})
+  await user.click(likeButton)
+  await user.click(likeButton)
+
+  expect(mockUpdateLike).toHaveBeenCalledTimes(2)
+})
+</file>
+
+<file path="src/components/BlogForm.jsx">
+// src/components/BlogForm.jsx
+import { useState } from 'react'
+
+const BlogForm = ({ createBlog }) => {
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [url, setUrl] = useState('')
+
+  const handleAddBlog = (event) => {
+    event.preventDefault()
+    createBlog({
+      title,
+      author,
+      url,
+    })
+
+    // 清空输入框
+    setTitle('')
+    setAuthor('')
+    setUrl('')
+  }
+
+  return (
+    <div>
+      <h2>create new</h2>
+      <form onSubmit={handleAddBlog}>
+        <div>
+          title:
+          <input
+            type="text"
+            value={title}
+            name="title"
+            onChange={({ target }) => setTitle(target.value)}
+          />
+        </div>
+        <div>
+          author:
+          <input
+            type="text"
+            value={author}
+            name="author"
+            onChange={({ target }) => setAuthor(target.value)}
+          />
+        </div>
+        <div>
+          url:
+          <input
+            type="text"
+            value={url}
+            name="url"
+            onChange={({ target }) => setUrl(target.value)}
+          />
+        </div>
+        <button type="submit">create</button>
+      </form>
+    </div>
+  )
+}
+
+export default BlogForm
+</file>
+
+<file path="src/components/BlogForm.test.jsx">
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import BlogForm from './BlogForm'
+
+test('<BlogForm /> calls event handler with right details when a new blog is created', async () => {
+  const createBlog = vi.fn()
+  const user = userEvent.setup()
+
+  render(<BlogForm createBlog={createBlog} />)
+
+  const inputs = screen.getAllByRole('textbox')
+  const submitButton = screen.getByText('create')
+
+  await user.type(inputs[0], 'Testing a form')
+  await user.type(inputs[1], 'John Doe')
+  await user.type(inputs[2], 'http://example.com')
+  await user.click(submitButton)
+
+  expect(createBlog).toHaveBeenCalledTimes(1)
+  expect(createBlog).toHaveBeenCalledWith({
+    title: 'Testing a form',
+    author: 'John Doe',
+    url: 'http://example.com'
+  })
+})
+</file>
+
+<file path="src/components/Login.jsx">
+import Notification from "./Notification";
+import { useState } from "react";
+
+const Login = ({handleLogin }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const submitLogin = (event) => {
+    event.preventDefault();
+    handleLogin({ username, password });
+  };
+
+  return (
+    <div>
+      <h2>Log in to application</h2>
+      <p>Please log in to access the application.</p>
+      <form onSubmit={submitLogin}>
+        <div>
+          <label htmlFor="username">username</label>
+          <input
+            id="username"
+            type="text"
+            value={username}
+            name="username"
+            onChange={({ target }) => setUsername(target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="password">password</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            name="password"
+            onChange={({ target }) => setPassword(target.value)}
+          />
+        </div>
+        <button type="submit">login</button>
+      </form>
+    </div>
+  );
+};
+
+export default Login;
+</file>
+
+<file path="src/components/Login.test.jsx">
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
+import Login from './Login'
+
+describe('Login', () => {
+  test('calls handleLogin with the entered credentials', async () => {
+    const user = userEvent.setup()
+    const handleLogin = vi.fn()
+
+    render(
+      <Login
+        notification={{ message: null, type: null }}
+        handleLogin={handleLogin}
+      />
+    )
+
+    await user.type(screen.getByLabelText('username'), 'mluukkai')
+    await user.type(screen.getByLabelText('password'), 'salainen')
+    await user.click(screen.getByRole('button', { name: /login/i }))
+
+    expect(handleLogin).toHaveBeenCalledWith({
+      username: 'mluukkai',
+      password: 'salainen',
+    })
+  })
+})
+</file>
+
+<file path="src/components/Notification.jsx">
+// src/components/Notification.jsx
+const Notification = ({ message, type }) => {
+  if (message === null) {
+    return null
+  }
+
+  const style = {
+    color: type === 'error' ? 'red' : 'green',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  }
+
+  return (
+    <div style={style}>
+      {message}
+    </div>
+  )
+}
+
+export default Notification
+</file>
+
+<file path="src/components/Togglable.jsx">
+import { useState, useImperativeHandle } from 'react'
+
+
+const Togglable = (props) => {
+  const [visible, setVisible] = useState(false)
+
+  const hideWhenVisible = { display: visible ? 'none' : '' }
+  const showWhenVisible = { display: visible ? '' : 'none' }
+
+  const toggleVisibility = () => {
+    setVisible(!visible)
+  }
+
+
+  useImperativeHandle(props.ref, () => {
+    return { toggleVisibility }
+  })
+
+  return (
+    <div>
+      <div style={hideWhenVisible}>
+        <button onClick={toggleVisibility}>{props.buttonLabel}</button>
+      </div>
+      <div style={showWhenVisible}>
+        {props.children}
+        <button onClick={toggleVisibility}>cancel</button>
+      </div>
+    </div>
+  )
+}
+
+export default Togglable
+</file>
+
+<file path="src/services/blogs.js">
+// src/services/blogs.js
+import axios from 'axios'
+const baseUrl = '/api/blogs'
+
+let token = null
+
+const setToken = newToken => {
+  token = `Bearer ${newToken}`
+}
+
+const getAll = () => {
+  const request = axios.get(baseUrl)
+  return request.then(response => response.data)
+}
+
+const create = async newObject => {
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const response = await axios.post(baseUrl, newObject, config)
+  return response.data
+}
+
+const update = async (id, newObject) => {
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const response = await axios.put(`${baseUrl}/${id}`, newObject, config)
+  return response.data
+}
+
+const remove = async (id) => {
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const response = await axios.delete(`${baseUrl}/${id}`, config)
+  return response.data
+}
+
+export default { getAll, create, update, remove, setToken }
+</file>
+
+<file path="src/services/login.js">
+import axios from 'axios'
+const baseUrl = '/api/login'
+
+const login = async (credentials) => {
+  const response = await axios.post(baseUrl, credentials)
+  return response.data
+}
+
+export default { login }
+</file>
+
+<file path="src/App.jsx">
+// src/App.jsx
+import { useState, useEffect, useRef } from "react";
+import { Routes, Route, Link, useNavigate, useMatch} from "react-router-dom";
+
+import Blog from "./components/Blog";
+import Notification from "./components/Notification";
+import BlogForm from "./components/BlogForm";
+import Togglable from "./components/Togglable";
+import Login from "./components/Login";
+
+import blogService from "./services/blogs";
+import loginService from "./services/login";
+
+const App = () => {
+  const [blogs, setBlogs] = useState([]);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // Notification state
+  const [notification, setNotification] = useState({
+    message: null,
+    type: null,
+  });
+
+  const blogFormRef = useRef();
+
+  const notify = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification({ message: null, type: null });
+    }, 5000);
+  };
+
+  // Fetch blogs on initial load
+  useEffect(() => {
+    blogService.getAll().then((blogs) => setBlogs(blogs));
+  }, []);
+
+  // Check local storage for logged-in user session
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem("loggedBlogappUser");
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      blogService.setToken(user.token);
+    }
+  }, []);
+
+  // Handle Login (Exercise 5.1 & 5.2)
+  const handleLogin = async ({ username, password }) => {
+    try {
+      const user = await loginService.login({ username, password });
+
+      window.localStorage.setItem("loggedBlogappUser", JSON.stringify(user));
+      blogService.setToken(user.token);
+      setUser(user);
+      notify(`Welcome back, ${user.name || user.username}`);
+    } catch {
+      notify("Wrong username or password", "error");
+    }
+    
+    navigate("/");
+  };
+
+  // Handle Logout (Exercise 5.2)
+  const handleLogout = () => {
+    window.localStorage.removeItem("loggedBlogappUser");
+    blogService.setToken(null);
+    setUser(null);
+    notify("Logged out successfully");
+    navigate("/");
+  };
+
+  // 接收 BlogForm 传来的 blogObject
+  const addBlog = async (blogObject) => {
+    try {
+      // 隐匿 Togglable 表单 (搭配 5.5 步骤)
+      if (blogFormRef.current) {
+        blogFormRef.current.toggleVisibility();
+      }
+
+      const returnedBlog = await blogService.create(blogObject);
+      setBlogs(blogs.concat(returnedBlog));
+      notify(
+        `A new blog "${returnedBlog.title}" by ${returnedBlog.author} added`,
+      );
+    } catch {
+      notify("Failed to add blog", "error");
+    }
+    navigate("/");
+  };
+
+  const handleLike = async (id) => {
+    const blogToLike = blogs.find((b) => b.id === id);
+    const updatedBlogObject = {
+      user: blogToLike.user ? blogToLike.user.id || blogToLike.user : null,
+      likes: blogToLike.likes + 1,
+      author: blogToLike.author,
+      title: blogToLike.title,
+      url: blogToLike.url,
+    };
+
+    try {
+      const returnedBlog = await blogService.update(id, updatedBlogObject);
+      // 保留原来的 user 节点数据，防止点赞后 user 字段变成纯 ID 导致界面渲染异常
+      setBlogs(
+        blogs.map((b) =>
+          b.id === id ? { ...returnedBlog, user: blogToLike.user } : b,
+        ),
+      );
+    } catch {
+      notify("Failed to update likes", "error");
+    }
+  };
+
+  const handleDelete = async (blog) => {
+    const confirmDelete = window.confirm(
+      `Remove blog "${blog.title}" by ${blog.author}?`,
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await blogService.remove(blog.id);
+      setBlogs(blogs.filter((b) => b.id !== blog.id));
+      notify(`Blog "${blog.title}" removed`);
+    } catch {
+      notify(
+        "Failed to remove blog. Un-authorized user or expired session.",
+        "error",
+      );
+    }
+    navigate("/");
+  };
+
+  const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes);
+  const blogMatch = useMatch('/blogs/:id');
+  const blogId = blogMatch ? blogMatch.params.id : null;
+  const selectedBlog = blogId ? blogs.find((b) => b.id === blogId) : null;
+
+  // Render content for authenticated user
+  return (
+    <div>
+      <div>
+        <Link to="/">Home</Link>
+
+        <Link to="/create">Create New Blog</Link>
+        {user? <button onClick={handleLogout}>logout</button>: <Link to="/login">Login</Link>}
+      </div>
+      <Notification message={notification.message} type={notification.type} />
+      <Routes>
+        <Route 
+          path="/blogs/:id"
+          element={
+            <Blog
+              blog={selectedBlog}
+              updateLike={handleLike}
+              deleteBlog={handleDelete}
+              currentUser={user}
+            />
+          }
+        />
+
+        <Route
+          path="/create"
+          element={
+            <BlogForm createBlog={addBlog} />
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <Login handleLogin={handleLogin} />
+          }
+        />
+
+        <Route
+          path="/"
+          element={
+            <div>
+              <h2>blogs</h2>
+              {user && (
+                <p>
+                  {user.name || user.username} logged in{" "}
+                </p>
+              )}
+
+              <ul>
+                {sortedBlogs.map((blog) => (
+                  <Link to={`/blogs/${blog.id}`}>
+                    <li key={blog.id}>
+                      {blog.title} by {blog.author}
+                    </li>
+                  </Link>
+                ))}
+              </ul>
+            </div>
+          }
+        />
+      </Routes>
+    </div>
+  );
+};
+
+export default App;
+</file>
+
+<file path="src/main.jsx">
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import {BrowserRouter} from 'react-router-dom'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+)
+</file>
+
+<file path="tests/average.test.js">
+import {test,describe} from 'node:test'
+import assert from 'node:assert'
+import {reverse,average} from '../utils/for_testing.js'
+
+describe('average', () => {
+  test('of one value is the value itself', () => {
+    assert.strictEqual(average([1]), 1)
+  })
+
+  test('of many is calculated right', () => {
+    assert.strictEqual(average([1, 2, 3, 4, 5, 6]), 3.5)
+  })
+
+  test('of empty array is zero', () => {
+    assert.strictEqual(average([]), 0)
+  })
+})
+</file>
+
+<file path="tests/blog_api.test.ts">
+import { test, after, beforeEach, describe } from 'node:test'
+import assert from 'node:assert'
+import mongoose from 'mongoose'
+import supertest from 'supertest'
+import bcrypt from 'bcrypt'
+import app from '../app.js'
+import Blog from '../models/blog.js'
+import User from '../models/user.js'
+import { initialBlogs, initialUsers, blogsInDb } from './test_helper.js'
+
+const api = supertest(app)
+
+describe('when there is initially some blogs saved', () => {
+  let token = ''
+
+  beforeEach(async () => {
+    await Blog.deleteMany({})
+    await User.deleteMany({})
+
+    // 1. 创建测试用户
+    const userObjects = await Promise.all(
+      initialUsers.map(async user => {
+        const passwordHash = await bcrypt.hash(user.password, 10)
+        return new User({
+          username: user.username,
+          name: user.name,
+          passwordHash
+        })
+      })
+    )
+
+    const savePromises = userObjects.map(user => user.save())
+    await Promise.all(savePromises)
+    const rootUser = userObjects.find(user => user.username === 'root')
+
+    // 2. 登录获取 token
+    const loginResponse = await api
+      .post('/api/login')
+      .send({ username: 'root', password: 'secret' })
+
+    token = loginResponse.body.token
+
+    // 3. 将初始化博客绑定到该测试用户
+    const blogObjects = initialBlogs.map(blog => new Blog({ ...blog, user: rootUser._id }))
+    const promiseArray = blogObjects.map(blog => blog.save())
+    await Promise.all(promiseArray)
+  })
+
+  test('blogs are returned as json and in correct amount', async () => {
+    const response = await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    assert.strictEqual(response.body.length, initialBlogs.length)
+  })
+
+  describe('addition of a new blog', () => {
+    test('a valid blog can be added with a valid token', async () => {
+      const newBlog = {
+        title: 'Canonical stack overflow keys',
+        author: 'Joel Spolsky',
+        url: 'https://joelonsoftware.com',
+        likes: 12
+      }
+
+      // 带有 Authorization Header 发送 POST 请求
+      await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+      const blogsAtEnd = await blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, initialBlogs.length + 1)
+
+      const titles = blogsAtEnd.map(b => b.title)
+      assert.ok(titles.includes('Canonical stack overflow keys'))
+    })
+
+    // 4.23 新增：未提供 Token 时创建博客失败 (401 Unauthorized)
+    test('adding a blog fails with status code 401 Unauthorized if token is not provided', async () => {
+      const newBlog = {
+        title: 'Unauthorized blog post',
+        author: 'Anonymous',
+        url: 'https://unauthorized.com',
+        likes: 0
+      }
+
+      const result = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(401)
+        .expect('Content-Type', /application\/json/)
+
+      assert.ok(result.body.error.includes('token missing or invalid'))
+
+      const blogsAtEnd = await blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+    })
+
+    test('if likes property is missing, it defaults to 0', async () => {
+      const newBlog = {
+        title: 'Type wars',
+        author: 'Robert C. Martin',
+        url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html'
+      }
+
+      const response = await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newBlog)
+        .expect(201)
+
+      assert.strictEqual(response.body.likes, 0)
+    })
+
+    test('blog without title is rejected with status code 400', async () => {
+      const newBlog = {
+        author: 'Robert C. Martin',
+        url: 'http://blog.cleancoder.com'
+      }
+
+      await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newBlog)
+        .expect(400)
+
+      const blogsAtEnd = await blogsInDb()
+      assert.strictEqual(blogsAtEnd.length, initialBlogs.length)
+    })
+  })
+})
+
+after(async () => {
+  await mongoose.connection.close()
+})
+</file>
+
+<file path="tests/list_helper.test.js">
+import {test,describe} from 'node:test'
+import assert from 'node:assert'
+import listHelper from '../utils/list_healper.js'
+
+describe('total likes', () => {
+  const listWithOneBlog = [
+    {
+      _id: '5a422aa71b54a676234d17f8',
+      title: 'Go To Statement Considered Harmful',
+      author: 'Edsger W. Dijkstra',
+      url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf',
+      likes: 5,
+      __v: 0
+    }
+  ]
+
+  const listWithMultipleBlogs = [
+    {
+      _id: '5a422aa71b54a676234d17f8',
+      title: 'Go To Statement Considered Harmful',
+      author: 'Edsger W. Dijkstra',
+      url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf',
+      likes: 5,
+      __v: 0
+    },
+    {
+      _id: '5a422aa71b54a676234d17f9',
+      title: 'Another Blog',
+      author: 'John Doe',
+      url: 'https://example.com/blog2',
+      likes: 10,
+      __v: 0
+    }
+  ]
+
+  test('when list has only one blog, equals the likes of that', () => {
+    const result = listHelper.totalLikes(listWithOneBlog)
+    assert.strictEqual(result, 5)
+  })
+
+  test('Favorite blog is the one with the most likes', () => {
+    const result = listHelper.favoriteBlog(listWithMultipleBlogs)
+    assert.strictEqual(result.likes, 10)
+  })
+})
+</file>
+
+<file path="tests/reverse.test.js">
+import test from 'node:test'
+import assert from 'node:assert'
+import {reverse,average} from '../utils/for_testing.js'
+test('reverse of a', () => {
+  const result = reverse('a')
+
+  assert.strictEqual(result, 'a')
+})
+
+test('reverse of react', () => {
+  const result = reverse('react')
+
+  assert.strictEqual(result, 'tcaer')
+})
+
+test('reverse of saippuakauppias', () => {
+  const result = reverse('saippuakauppias')
+
+  assert.strictEqual(result, 'saippuakauppias')
+})
+</file>
+
+<file path="tests/test_helper.js">
+import Blog from '../models/blog.js'
+import User from '../models/user.js'
+
+const initialBlogs = [
+  {
+    title: 'React patterns',
+    author: 'Michael Chan',
+    url: 'https://reactpatterns.com/',
+    likes: 7,
+  },
+  {
+    title: 'Go To Statement Considered Harmful',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
+    likes: 5,
+  }
+]
+
+const initialUsers = [
+  {
+    username: 'root',
+    name: 'Superuser',
+    password: 'secret'
+  },
+  {
+    username: 'matti',
+    name: 'Matti Luukkainen',
+    password: 'salasana'
+  }
+]
+
+const nonExistingId = async () => {
+  const blog = new Blog({
+    title: 'willremovethissoon',
+    author: 'temp',
+    url: 'http://temp.com'
+  })
+  await blog.save()
+  await blog.deleteOne()
+
+  return blog._id.toString()
+}
+
+const blogsInDb = async () => {
+  const blogs = await Blog.find({})
+  return blogs.map(blog => blog.toJSON())
+}
+
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users.map(u => u.toJSON())
+}
+
+export { initialBlogs, initialUsers, nonExistingId, blogsInDb, usersInDb }
+</file>
+
+<file path="tests/user_api.test.js">
+import { test, after, beforeEach, describe } from 'node:test'
+import assert from 'node:assert'
+import mongoose from 'mongoose'
+import supertest from 'supertest'
+import bcrypt from 'bcrypt'
+import app from '../app.js'
+import User from '../models/user.js'
+import { initialUsers } from './test_helper.js'
+
+const api = supertest(app)
+
+describe('when there are initially users in db', () => {
+  beforeEach(async () => {
+    await User.deleteMany({})
+
+    const userObjects = await Promise.all(
+      initialUsers.map(async user => {
+        const passwordHash = await bcrypt.hash(user.password, 10)
+        return new User({
+          username: user.username,
+          name: user.name,
+          passwordHash
+        })
+      })
+    )
+
+    const savePromises = userObjects.map(user => user.save())
+    await Promise.all(savePromises)
+  })
+
+  test('creation fails with 400 if username is too short', async () => {
+    const usersAtStart = await User.find({})
+
+    const newUser = {
+      username: 'ab',
+      name: 'Short Name',
+      password: 'validpassword'
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    assert.ok(result.body.error.includes('at least 3 characters long'))
+
+    const usersAtEnd = await User.find({})
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+
+  test('creation fails with 400 if password is too short', async () => {
+    const usersAtStart = await User.find({})
+
+    const newUser = {
+      username: 'validusername',
+      name: 'Valid Name',
+      password: '12'
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    assert.ok(result.body.error.includes('at least 3 characters long'))
+
+    const usersAtEnd = await User.find({})
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+
+  test('creation fails with 400 if username is not unique', async () => {
+    const usersAtStart = await User.find({})
+
+    const newUser = {
+      username: 'root', // 数据库中已存在
+      name: 'Duplicate Root',
+      password: 'password123'
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    assert.ok(result.body.error.includes('expected `username` to be unique'))
+
+    const usersAtEnd = await User.find({})
+    assert.strictEqual(usersAtEnd.length, usersAtStart.length)
+  })
+})
+
+after(async () => {
+  await mongoose.connection.close()
+})
+</file>
+
+<file path="utils/config.js">
+import 'dotenv/config'
+
+const PORT = process.env.PORT || 3003
+const MONGODB_URI = process.env.NODE_ENV === 'test'
+  ? process.env.TEST_MONGODB_URI
+  : process.env.MONGODB_URI
+
+export default {
+  PORT,
+  MONGODB_URI
+}
+</file>
+
+<file path="utils/for_testing.js">
+const reverse = (string) => {
+  return string
+    .split('')
+    .reverse()
+    .join('')
+}
+
+const average = array => {
+  const reducer = (sum, item) => {
+    return sum + item
+  }
+
+  return array.length === 0
+    ? 0
+    : array.reduce(reducer, 0) / array.length
+}
+
+export { reverse, average }
+</file>
+
+<file path="utils/list_healper.js">
+const dummy = (blogs) => {
+  return Number(1)
+}
+
+const totalLikes = (blogs) => {
+  return blogs.reduce((sum, blog) => sum + blog.likes, 0)
+}
+
+const favoriteBlog = (blogs) => {
+  return blogs.reduce((favorite, blog) => {
+    return blog.likes > favorite.likes ? blog : favorite
+  }, blogs[0])
+}
+
+export default { dummy, totalLikes, favoriteBlog }
+</file>
+
+<file path="utils/logger.js">
+const info = (...params) => {
+  console.log(...params)
+}
+
+const error = (...params) => {
+  console.error(...params)
+}
+
+export default {
+  info,
+  error
+}
+</file>
+
+<file path="utils/middleware.js">
+import jwt from 'jsonwebtoken'
+import User from '../models/user.js'
+import logger from './logger.js'
+
+const unknownEndpoint = (request, response) => {
+  logger.info('Unknown endpoint:', request.path)
+  response.status(404).send({ error: 'Unknown endpoint' })
+}
+
+const errorHandler = (error, request, response, next) => {
+  logger.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformed id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  } else if (error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')) {
+    // 处理用户名重复的错误
+    return response.status(400).json({ error: 'expected `username` to be unique' })
+  }else if(error.name === 'JsonWebTokenError') {
+    return response.status(401).json({ error: 'invalid token' })
+  } 
+
+  next(error)
+}
+const tokenExtractor = (request, response, next) => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    request.token = authorization.replace('Bearer ', '')
+  } else {
+    request.token = null
+  }
+
+  next()
+}
+const userExtractor = async (request, response, next) => {
+  if (request.token) {
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+    if (decodedToken.id) {
+      request.user = await User.findById(decodedToken.id)
+    }
+  }
+
+  next()
+}
+
+export default {
+  unknownEndpoint,
+  errorHandler,
+  tokenExtractor,
+  userExtractor
+}
+</file>
+
+<file path="app.js">
+import express from 'express'
+import cors from 'cors'
+import mongoose from 'mongoose'
+import config from './utils/config.js'
+import logger from './utils/logger.js'
+import middleware from './utils/middleware.js'
+import blogsRouter from './controllers/blogs.js'
+import usersRouter from './controllers/users.js'
+import loginRouter from './controllers/login.js'
+import testingRouter from './controllers/testing.js'
+
+
+const app = express()
+
+logger.info('Application started')
+
+mongoose.connect(config.MONGODB_URI, {family: 4})
+        .then(() => {
+            logger.info('Connected to MongoDB')
+        })
+        .catch((error) => {
+            logger.error('Error connecting to MongoDB:', error)
+        })
+
+app.use(cors())
+app.use(express.json())
+app.use(middleware.tokenExtractor)
+app.use('/api/blogs', middleware.userExtractor, blogsRouter)
+app.use('/api/login', loginRouter)
+app.use('/api/users', usersRouter)
+if (process.env.NODE_ENV === 'test') {
+    app.use('/api/testing', testingRouter)
+}
+
+app.use(middleware.unknownEndpoint)
+app.use(middleware.errorHandler)
+
+
+
+export default app
+</file>
+
+<file path="index.js">
+import app from './app.js'
+import logger from './utils/logger.js'
+import config from './utils/config.js'
+
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'pong', timestamp: new Date().toISOString()})
+})
+
+if(process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../client/dist')))
+    app.get('/*splat', (req, res) => {
+        res.sendFile(path.join(__dirname, '../client/dist/index.html'))
+    })
+}
+
+app.listen(config.PORT, () => {
+    logger.info(`Server running on port ${config.PORT}`)
+})
+</file>
+
+<file path="package.json">
+{
+  "name": "bloglist-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node index.js",
+    "dev": "cross-env NODE_ENV=development node --watch index.js",
+    "test": "cross-env NODE_ENV=test node --test --test-concurrency=1",
+    "lint": "eslint .",
+    "start:test": "cross-env NODE_ENV=test node --watch index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.13.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.8.0"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "supertest": "^7.2.2"
+  }
+}
+</file>
+
+<file path="pnpm-workspace.yaml">
+allowBuilds:
+  bcrypt: false
+</file>
+
+</files>

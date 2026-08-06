@@ -1,0 +1,918 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  vite.svg
+src/
+  components/
+    Blog.jsx
+    Blog.test.jsx
+    BlogForm.jsx
+    BlogForm.test.jsx
+    Login.jsx
+    Login.test.jsx
+    Notification.jsx
+    Togglable.jsx
+  services/
+    blogs.js
+    login.js
+  App.jsx
+  main.jsx
+eslint.config.js
+index.html
+package.json
+pnpm-workspace.yaml
+README.md
+testSetup.js
+vite.config.js
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="public/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+</file>
+
+<file path="src/components/Blog.jsx">
+// src/components/Blog.jsx
+
+const Blog = ({ blog, updateLike, deleteBlog, currentUser }) => {
+  
+  const blogStyle = {
+    paddingTop: 10,
+    paddingLeft: 2,
+    border: 'solid',
+    borderWidth: 1,
+    marginBottom: 5
+  }
+
+  const removeButtonStyle = {
+    backgroundColor: '#008CBA',
+    color: 'white',
+    border: 'none',
+    borderRadius: 3,
+    padding: '3px 8px',
+    cursor: 'pointer',
+    marginTop: 5
+  }
+
+  
+
+  const blogOwnerId = typeof blog.user === 'string' ? blog.user : blog.user?.id
+  const blogOwnerUsername = typeof blog.user === 'string' ? null : blog.user?.username
+  const showDeleteButton = currentUser && (
+    blogOwnerId === currentUser.id || blogOwnerUsername === currentUser.username
+  )
+  const showLikeButton = Boolean(currentUser)
+
+  return (
+    <div style={blogStyle}>
+      <div>
+        <h2>{blog.title}</h2>
+        <p>{blog.author}</p>
+      </div>
+
+      <div>
+        <div>{blog.url}</div>
+        <div>likes {blog.likes}</div>
+        <div>{blog.user ? blog.user.name || blog.user.username : ''}</div>
+
+        {showLikeButton && (
+          <div>
+            <button type="button" onClick={() => updateLike(blog.id)}>like</button>
+          </div>
+        )}
+
+        {showDeleteButton && (
+          <div>
+            <button style={removeButtonStyle} onClick={() => deleteBlog(blog)}>
+              delete
+            </button>
+          </div>
+        )}
+        </div>
+    </div>
+  )
+}
+
+export default Blog
+</file>
+
+<file path="src/components/Blog.test.jsx">
+import Blog from './Blog'
+import {screen,render} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+test('shows blog details to unauthenticated users without action buttons', () => {
+  const blog = {
+    title: 'Component testing is done with react-testing-library',
+    author: 'John Doe',
+    url: 'http://example.com',
+    likes: 5,
+    user: {
+      id: 'creator-1',
+      username: 'creator',
+      name: 'Creator One'
+    }
+  }
+
+  render(<Blog blog={blog} currentUser={null} />)
+
+  const title = screen.getByText('Component testing is done with react-testing-library')
+  const author = screen.getByText('John Doe')
+  const url = screen.getByText('http://example.com')
+  const likes = screen.getByText('likes 5')
+  const likeButton = screen.queryByRole('button', {name: 'like'})
+  const deleteButton = screen.queryByRole('button', {name: 'delete'})
+
+  expect(title).toBeInTheDocument()
+  expect(author).toBeInTheDocument()
+  expect(url).toBeInTheDocument()
+  expect(likes).toBeInTheDocument()
+  expect(likeButton).not.toBeInTheDocument()
+  expect(deleteButton).not.toBeInTheDocument()
+})
+
+test('shows only the like button to authenticated users who are not the creator', () => {
+    const blog = {
+      title: 'Component testing is done with react-testing-library',
+      author: 'John Doe',
+      url: 'http://example.com',
+      likes: 5,
+      user: {
+        id: 'creator-1',
+        username: 'creator',
+        name: 'Creator One'
+      }
+    }
+    const currentUser = {
+      id: 'user-2',
+      username: 'reader',
+      name: 'Reader Two'
+    }
+
+    render(<Blog blog={blog} currentUser={currentUser} updateLike={vi.fn()} deleteBlog={vi.fn()} />)
+
+    const likeButton = screen.getByRole('button', {name: 'like'})
+    const deleteButton = screen.queryByRole('button', {name: 'delete'})
+
+    expect(likeButton).toBeInTheDocument()
+    expect(deleteButton).not.toBeInTheDocument()
+  })
+
+test('shows the delete button to the blog creator', () => {
+  const blog = {
+    title: 'Component testing is done with react-testing-library',
+    author: 'John Doe',
+    url: 'http://example.com',
+    likes: 5,
+    user: {
+      id: 'creator-1',
+      username: 'creator',
+      name: 'Creator One'
+    }
+  }
+  const currentUser = {
+    id: 'creator-1',
+    username: 'creator',
+    name: 'Creator One'
+  }
+
+  render(<Blog blog={blog} currentUser={currentUser} updateLike={vi.fn()} deleteBlog={vi.fn()} />)
+
+  const likeButton = screen.getByRole('button', {name: 'like'})
+  const deleteButton = screen.getByRole('button', {name: 'delete'})
+
+  expect(likeButton).toBeInTheDocument()
+  expect(deleteButton).toBeInTheDocument()
+})
+
+test('calls like handler twice when like button is clicked twice', async () => {
+  const mockUpdateLike = vi.fn()
+  const blog = {
+    title: 'Component testing is done with react-testing-library',
+    author: 'John Doe',
+    url: 'http://example.com',
+    likes: 5,
+    user: {
+      id: 'creator-1',
+      username: 'creator',
+      name: 'Creator One'
+    }
+  }
+  const currentUser = {
+    id: 'user-2',
+    username: 'reader',
+    name: 'Reader Two'
+  }
+  const user = userEvent.setup()
+
+  render(<Blog blog={blog} currentUser={currentUser} updateLike={mockUpdateLike} deleteBlog={vi.fn()} />)
+
+  const likeButton = screen.getByRole('button', {name: 'like'})
+  await user.click(likeButton)
+  await user.click(likeButton)
+
+  expect(mockUpdateLike).toHaveBeenCalledTimes(2)
+})
+</file>
+
+<file path="src/components/BlogForm.jsx">
+// src/components/BlogForm.jsx
+import { useState } from 'react'
+
+const BlogForm = ({ createBlog }) => {
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [url, setUrl] = useState('')
+
+  const handleAddBlog = (event) => {
+    event.preventDefault()
+    createBlog({
+      title,
+      author,
+      url,
+    })
+
+    // 清空输入框
+    setTitle('')
+    setAuthor('')
+    setUrl('')
+  }
+
+  return (
+    <div>
+      <h2>create new</h2>
+      <form onSubmit={handleAddBlog}>
+        <div>
+          title:
+          <input
+            type="text"
+            value={title}
+            name="title"
+            onChange={({ target }) => setTitle(target.value)}
+          />
+        </div>
+        <div>
+          author:
+          <input
+            type="text"
+            value={author}
+            name="author"
+            onChange={({ target }) => setAuthor(target.value)}
+          />
+        </div>
+        <div>
+          url:
+          <input
+            type="text"
+            value={url}
+            name="url"
+            onChange={({ target }) => setUrl(target.value)}
+          />
+        </div>
+        <button type="submit">create</button>
+      </form>
+    </div>
+  )
+}
+
+export default BlogForm
+</file>
+
+<file path="src/components/BlogForm.test.jsx">
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import BlogForm from './BlogForm'
+
+test('<BlogForm /> calls event handler with right details when a new blog is created', async () => {
+  const createBlog = vi.fn()
+  const user = userEvent.setup()
+
+  render(<BlogForm createBlog={createBlog} />)
+
+  const inputs = screen.getAllByRole('textbox')
+  const submitButton = screen.getByText('create')
+
+  await user.type(inputs[0], 'Testing a form')
+  await user.type(inputs[1], 'John Doe')
+  await user.type(inputs[2], 'http://example.com')
+  await user.click(submitButton)
+
+  expect(createBlog).toHaveBeenCalledTimes(1)
+  expect(createBlog).toHaveBeenCalledWith({
+    title: 'Testing a form',
+    author: 'John Doe',
+    url: 'http://example.com'
+  })
+})
+</file>
+
+<file path="src/components/Login.jsx">
+import Notification from "./Notification";
+import { useState } from "react";
+
+const Login = ({handleLogin }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const submitLogin = (event) => {
+    event.preventDefault();
+    handleLogin({ username, password });
+  };
+
+  return (
+    <div>
+      <h2>Log in to application</h2>
+      <p>Please log in to access the application.</p>
+      <form onSubmit={submitLogin}>
+        <div>
+          <label htmlFor="username">username</label>
+          <input
+            id="username"
+            type="text"
+            value={username}
+            name="username"
+            onChange={({ target }) => setUsername(target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="password">password</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            name="password"
+            onChange={({ target }) => setPassword(target.value)}
+          />
+        </div>
+        <button type="submit">login</button>
+      </form>
+    </div>
+  );
+};
+
+export default Login;
+</file>
+
+<file path="src/components/Login.test.jsx">
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
+import Login from './Login'
+
+describe('Login', () => {
+  test('calls handleLogin with the entered credentials', async () => {
+    const user = userEvent.setup()
+    const handleLogin = vi.fn()
+
+    render(
+      <Login
+        notification={{ message: null, type: null }}
+        handleLogin={handleLogin}
+      />
+    )
+
+    await user.type(screen.getByLabelText('username'), 'mluukkai')
+    await user.type(screen.getByLabelText('password'), 'salainen')
+    await user.click(screen.getByRole('button', { name: /login/i }))
+
+    expect(handleLogin).toHaveBeenCalledWith({
+      username: 'mluukkai',
+      password: 'salainen',
+    })
+  })
+})
+</file>
+
+<file path="src/components/Notification.jsx">
+// src/components/Notification.jsx
+const Notification = ({ message, type }) => {
+  if (message === null) {
+    return null
+  }
+
+  const style = {
+    color: type === 'error' ? 'red' : 'green',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  }
+
+  return (
+    <div style={style}>
+      {message}
+    </div>
+  )
+}
+
+export default Notification
+</file>
+
+<file path="src/components/Togglable.jsx">
+import { useState, useImperativeHandle } from 'react'
+
+
+const Togglable = (props) => {
+  const [visible, setVisible] = useState(false)
+
+  const hideWhenVisible = { display: visible ? 'none' : '' }
+  const showWhenVisible = { display: visible ? '' : 'none' }
+
+  const toggleVisibility = () => {
+    setVisible(!visible)
+  }
+
+
+  useImperativeHandle(props.ref, () => {
+    return { toggleVisibility }
+  })
+
+  return (
+    <div>
+      <div style={hideWhenVisible}>
+        <button onClick={toggleVisibility}>{props.buttonLabel}</button>
+      </div>
+      <div style={showWhenVisible}>
+        {props.children}
+        <button onClick={toggleVisibility}>cancel</button>
+      </div>
+    </div>
+  )
+}
+
+export default Togglable
+</file>
+
+<file path="src/services/blogs.js">
+// src/services/blogs.js
+import axios from 'axios'
+const baseUrl = '/api/blogs'
+
+let token = null
+
+const setToken = newToken => {
+  token = `Bearer ${newToken}`
+}
+
+const getAll = () => {
+  const request = axios.get(baseUrl)
+  return request.then(response => response.data)
+}
+
+const create = async newObject => {
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const response = await axios.post(baseUrl, newObject, config)
+  return response.data
+}
+
+const update = async (id, newObject) => {
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const response = await axios.put(`${baseUrl}/${id}`, newObject, config)
+  return response.data
+}
+
+const remove = async (id) => {
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const response = await axios.delete(`${baseUrl}/${id}`, config)
+  return response.data
+}
+
+export default { getAll, create, update, remove, setToken }
+</file>
+
+<file path="src/services/login.js">
+import axios from 'axios'
+const baseUrl = '/api/login'
+
+const login = async (credentials) => {
+  const response = await axios.post(baseUrl, credentials)
+  return response.data
+}
+
+export default { login }
+</file>
+
+<file path="src/App.jsx">
+// src/App.jsx
+import { useState, useEffect, useRef } from "react";
+import { Routes, Route, Link, useNavigate, useMatch} from "react-router-dom";
+
+import Blog from "./components/Blog";
+import Notification from "./components/Notification";
+import BlogForm from "./components/BlogForm";
+import Togglable from "./components/Togglable";
+import Login from "./components/Login";
+
+import blogService from "./services/blogs";
+import loginService from "./services/login";
+
+const App = () => {
+  const [blogs, setBlogs] = useState([]);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // Notification state
+  const [notification, setNotification] = useState({
+    message: null,
+    type: null,
+  });
+
+  const blogFormRef = useRef();
+
+  const notify = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification({ message: null, type: null });
+    }, 5000);
+  };
+
+  // Fetch blogs on initial load
+  useEffect(() => {
+    blogService.getAll().then((blogs) => setBlogs(blogs));
+  }, []);
+
+  // Check local storage for logged-in user session
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem("loggedBlogappUser");
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      blogService.setToken(user.token);
+    }
+  }, []);
+
+  // Handle Login (Exercise 5.1 & 5.2)
+  const handleLogin = async ({ username, password }) => {
+    try {
+      const user = await loginService.login({ username, password });
+
+      window.localStorage.setItem("loggedBlogappUser", JSON.stringify(user));
+      blogService.setToken(user.token);
+      setUser(user);
+      notify(`Welcome back, ${user.name || user.username}`);
+    } catch {
+      notify("Wrong username or password", "error");
+    }
+    
+    navigate("/");
+  };
+
+  // Handle Logout (Exercise 5.2)
+  const handleLogout = () => {
+    window.localStorage.removeItem("loggedBlogappUser");
+    blogService.setToken(null);
+    setUser(null);
+    notify("Logged out successfully");
+    navigate("/");
+  };
+
+  // 接收 BlogForm 传来的 blogObject
+  const addBlog = async (blogObject) => {
+    try {
+      // 隐匿 Togglable 表单 (搭配 5.5 步骤)
+      if (blogFormRef.current) {
+        blogFormRef.current.toggleVisibility();
+      }
+
+      const returnedBlog = await blogService.create(blogObject);
+      setBlogs(blogs.concat(returnedBlog));
+      notify(
+        `A new blog "${returnedBlog.title}" by ${returnedBlog.author} added`,
+      );
+    } catch {
+      notify("Failed to add blog", "error");
+    }
+    navigate("/");
+  };
+
+  const handleLike = async (id) => {
+    const blogToLike = blogs.find((b) => b.id === id);
+    const updatedBlogObject = {
+      user: blogToLike.user ? blogToLike.user.id || blogToLike.user : null,
+      likes: blogToLike.likes + 1,
+      author: blogToLike.author,
+      title: blogToLike.title,
+      url: blogToLike.url,
+    };
+
+    try {
+      const returnedBlog = await blogService.update(id, updatedBlogObject);
+      // 保留原来的 user 节点数据，防止点赞后 user 字段变成纯 ID 导致界面渲染异常
+      setBlogs(
+        blogs.map((b) =>
+          b.id === id ? { ...returnedBlog, user: blogToLike.user } : b,
+        ),
+      );
+    } catch {
+      notify("Failed to update likes", "error");
+    }
+  };
+
+  const handleDelete = async (blog) => {
+    const confirmDelete = window.confirm(
+      `Remove blog "${blog.title}" by ${blog.author}?`,
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await blogService.remove(blog.id);
+      setBlogs(blogs.filter((b) => b.id !== blog.id));
+      notify(`Blog "${blog.title}" removed`);
+    } catch {
+      notify(
+        "Failed to remove blog. Un-authorized user or expired session.",
+        "error",
+      );
+    }
+    navigate("/");
+  };
+
+  const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes);
+  const blogMatch = useMatch('/blogs/:id');
+  const blogId = blogMatch ? blogMatch.params.id : null;
+  const selectedBlog = blogId ? blogs.find((b) => b.id === blogId) : null;
+
+  // Render content for authenticated user
+  return (
+    <div>
+      <div>
+        <Link to="/">Home</Link>
+
+        <Link to="/create">Create New Blog</Link>
+        {user? <button onClick={handleLogout}>logout</button>: <Link to="/login">Login</Link>}
+      </div>
+      <Notification message={notification.message} type={notification.type} />
+      <Routes>
+        <Route 
+          path="/blogs/:id"
+          element={
+            <Blog
+              blog={selectedBlog}
+              updateLike={handleLike}
+              deleteBlog={handleDelete}
+              currentUser={user}
+            />
+          }
+        />
+
+        <Route
+          path="/create"
+          element={
+            <BlogForm createBlog={addBlog} />
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <Login handleLogin={handleLogin} />
+          }
+        />
+
+        <Route
+          path="/"
+          element={
+            <div>
+              <h2>blogs</h2>
+              {user && (
+                <p>
+                  {user.name || user.username} logged in{" "}
+                </p>
+              )}
+
+              <ul>
+                {sortedBlogs.map((blog) => (
+                  <Link to={`/blogs/${blog.id}`}>
+                    <li key={blog.id}>
+                      {blog.title} by {blog.author}
+                    </li>
+                  </Link>
+                ))}
+              </ul>
+            </div>
+          }
+        />
+      </Routes>
+    </div>
+  );
+};
+
+export default App;
+</file>
+
+<file path="src/main.jsx">
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import {BrowserRouter} from 'react-router-dom'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+)
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+
+export default [
+  { ignores: ['dist'] },
+  {
+    files: ['**/*.{js,jsx}'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module'
+      }
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true }
+      ]
+    }
+  },
+  {
+    files: ['**/*.{test,spec}.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.vitest
+      }
+    }
+  }
+]
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "bloglist-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "@vitest/coverage-v8": "4.1.10",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.5.0",
+    "jsdom": "^30.0.0",
+    "vite": "^6.3.5",
+    "vitest": "^4.1.10"
+  }
+}
+</file>
+
+<file path="pnpm-workspace.yaml">
+allowBuilds:
+  esbuild: false
+</file>
+
+<file path="README.md">
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+</file>
+
+<file path="testSetup.js">
+import { afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
+
+afterEach(() => {
+  cleanup()
+})
+</file>
+
+<file path="vite.config.js">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3003',
+        changeOrigin: true
+      }
+    }
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './testSetup.js', 
+  },
+  
+})
+</file>
+
+</files>
