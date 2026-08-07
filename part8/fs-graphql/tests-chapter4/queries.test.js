@@ -8,7 +8,7 @@ import {
   createServer,
   initialBooks,
   initialAuthors,
-} from'./test_helper'
+} from'./test_helper.js'
 
 let server
 

@@ -10,7 +10,7 @@ import {
   Author,
   Book,
   User,
-} from'./test_helper'
+} from'./test_helper.js'
 
 let server
 

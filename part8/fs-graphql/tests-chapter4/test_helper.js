@@ -4,11 +4,11 @@ import {
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from '../library-backend/node_modules/mongoose'
 
-import typeDefs from '../library-backend/schema'
-import cimportresolvers from '../library-backend/resolvers'
-import Author from '../library-backend/models/author'
-import Book  from '../library-backend/models/book'
-import User  from '../library-backend/models/user'
+import typeDefs from '../library-backend/schema.js'
+import cimportresolvers from '../library-backend/resolvers.js'
+import Author from '../library-backend/models/author.js'
+import Book  from '../library-backend/models/book.js'
+import User  from '../library-backend/models/user.js'
 
 process.env.JWT_SECRET = 'test-secret-key'
 
