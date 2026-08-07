@@ -1,11 +1,11 @@
 import {
   ApolloServer,
-} from '../library-backend/node_modules/@apollo/server'
+} from '../library-backend/node_modules/@apollo/server/dist/cjs/index.js'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import mongoose from '../library-backend/node_modules/mongoose'
+import mongoose from '../library-backend/node_modules/mongoose/index.js'
 
 import typeDefs from '../library-backend/schema.js'
-import cimportresolvers from '../library-backend/resolvers.js'
+import resolvers from '../library-backend/resolvers.js'
 import Author from '../library-backend/models/author.js'
 import Book  from '../library-backend/models/book.js'
 import User  from '../library-backend/models/user.js'
@@ -109,7 +109,7 @@ const createServer = () => {
   return new ApolloServer({ typeDefs, resolvers })
 }
 
-module.exports = {
+export {
   initialAuthors,
   initialBooks,
   setupDatabase,
