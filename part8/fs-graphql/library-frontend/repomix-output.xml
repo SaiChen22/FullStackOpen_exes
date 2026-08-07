@@ -1,0 +1,510 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  vite.svg
+src/
+  components/
+    Authors.jsx
+    Books.jsx
+    NewBook.jsx
+    SetBirthdayForm.jsx
+  App.jsx
+  main.jsx
+  queries.js
+eslint.config.js
+index.html
+package.json
+pnpm-workspace.yaml
+README.md
+vite.config.js
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="public/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+</file>
+
+<file path="src/components/Authors.jsx">
+import { useQuery } from '@apollo/client/react'
+import { ALL_AUTHOR } from '../queries'
+
+import SetBirthdayForm from './SetBirthdayForm'
+
+
+const Authors = (props) => {
+  const authors =useQuery(ALL_AUTHOR)
+
+
+  if (!props.show) {
+    return null
+  }
+
+  return (
+    <div>
+      <h2>authors</h2>
+      <table>
+        <tbody>
+          <tr>
+            <th></th>
+            <th>born</th>
+            <th>books</th>
+          </tr>
+          {authors?.data?.allAuthors.map((a) => (
+            <tr key={a.id}>
+              <td>{a.name}</td>
+              <td>{a.born}</td>
+              <td>{a.bookCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <SetBirthdayForm authors={ authors?.data?.allAuthors||[]}/>
+    </div>
+  )
+}
+
+export default Authors
+</file>
+
+<file path="src/components/Books.jsx">
+import {useQuery} from '@apollo/client/react'
+import { ALL_BOOKS } from '../queries'
+
+const Books = (props) => {
+  const books = useQuery(ALL_BOOKS)
+  if (!props.show) {
+    return null
+  }
+
+  
+
+  return (
+    <div>
+      <h2>books</h2>
+
+      <table>
+        <tbody>
+          <tr>
+            <th></th>
+            <th>author</th>
+            <th>published</th>
+          </tr>
+          {books.data?.allBooks?.map((a) => (
+            <tr key={a.id}>
+              <td>{a.title}</td>
+              <td>{a.author}</td>
+              <td>{a.published}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+export default Books
+</file>
+
+<file path="src/components/NewBook.jsx">
+import { useState } from 'react'
+import {useMutation} from '@apollo/client/react'
+import { ADD_BOOK, ALL_BOOKS, ALL_AUTHOR} from '../queries'
+
+const NewBook = (props) => {
+  const [addBook] = useMutation(ADD_BOOK, {
+    refetchQueries: [{ query: ALL_BOOKS }, { query: ALL_AUTHOR }]
+  })
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [published, setPublished] = useState('')
+  const [genre, setGenre] = useState('')
+  const [genres, setGenres] = useState([])
+
+  if (!props.show) {
+    return null
+  }
+
+  const submit = async (event) => {
+    event.preventDefault()
+
+    await addBook({
+      variables: {
+        title,
+        author,
+        published: parseInt(published),
+        genres
+      }
+    })
+
+    setTitle('')
+    setPublished('')
+    setAuthor('')
+    setGenres([])
+    setGenre('')
+  }
+
+  const addGenre = () => {
+    setGenres(genres.concat(genre))
+    setGenre('')
+  }
+
+  return (
+    <div>
+      <form onSubmit={submit}>
+        <div>
+          title
+          <input
+            value={title}
+            onChange={({ target }) => setTitle(target.value)}
+          />
+        </div>
+        <div>
+          author
+          <input
+            value={author}
+            onChange={({ target }) => setAuthor(target.value)}
+          />
+        </div>
+        <div>
+          published
+          <input
+            type="number"
+            value={published}
+            onChange={({ target }) => setPublished(target.value)}
+          />
+        </div>
+        <div>
+          <input
+            value={genre}
+            onChange={({ target }) => setGenre(target.value)}
+          />
+          <button onClick={addGenre} type="button">
+            add genre
+          </button>
+        </div>
+        <div>genres: {genres.join(' ')}</div>
+        <button type="submit">create book</button>
+      </form>
+    </div>
+  )
+}
+
+export default NewBook
+</file>
+
+<file path="src/components/SetBirthdayForm.jsx">
+import {  useMutation } from "@apollo/client/react";
+import { EDIT_AUTHOR,ALL_AUTHOR} from "../queries";
+
+const SetBirthdayForm = ({ authors }) => {
+
+    const [updateAuthor] = useMutation(EDIT_AUTHOR,{
+        refetchQueries: [{ query: ALL_AUTHOR }]
+    });
+
+
+    const handleUpdateAuthor = (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const authorId = form.author.value;
+      const born = form.born.value;
+
+      updateAuthor({
+        variables: {
+          name: authorId,
+          setBornTo: parseInt(born)
+        }
+      });
+    };
+
+  return (
+    <div>
+      <form onSubmit={handleUpdateAuthor}>
+        <div>
+          name
+          <select name="author">
+            {authors.map((author) => (
+              <option key={author.id} value={author.name}>
+                {author.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+            born
+            <input type="number" name="born" />
+        </div>
+        <div>
+            <button type="submit">update author</button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default SetBirthdayForm;
+</file>
+
+<file path="src/App.jsx">
+import { useState } from 'react'
+import Authors from './components/Authors'
+import Books from './components/Books'
+import NewBook from './components/NewBook'
+
+const App = () => {
+  const [page, setPage] = useState('authors')
+
+  return (
+    <div>
+      <div>
+        <button onClick={() => setPage('authors')}>authors</button>
+        <button onClick={() => setPage('books')}>books</button>
+        <button onClick={() => setPage('add')}>add book</button>
+      </div>
+
+      <Authors show={page === 'authors'} />
+
+      <Books show={page === 'books'} />
+
+      <NewBook show={page === 'add'} />
+    </div>
+  )
+}
+
+export default App
+</file>
+
+<file path="src/main.jsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App.jsx'
+
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
+import {ApolloProvider} from '@apollo/client/react'
+
+const client = new ApolloClient({
+  link: new HttpLink({
+    uri: 'http://localhost:4000',
+  }),
+  cache: new InMemoryCache(),
+})
+
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <ApolloProvider client={client}>
+      <App />
+    </ApolloProvider>
+  </StrictMode>,
+)
+</file>
+
+<file path="src/queries.js">
+import { gql } from '@apollo/client'
+
+const ALL_AUTHOR = gql`
+query AllAuthors {
+  allAuthors {
+    name,
+    born,
+    bookCount,
+    id
+  }
+}`
+
+const ALL_BOOKS = gql`query AllBooks {
+  allBooks {
+    author,
+    title,
+    published,id
+  }
+}`
+
+const ADD_BOOK = gql`mutation AddBook($title: String!, $author: String!, $genres: [String!]!, $published: Int) {
+  addBook(title: $title, author: $author, genres: $genres, published: $published) {
+    author
+    genres
+    id
+    published
+    title
+  }
+}`
+
+const EDIT_AUTHOR = gql`mutation Mutation($name: String!, $setBornTo: Int) {
+  editAuthor(name: $name, setBornTo: $setBornTo) {
+    bookCount
+    born
+    id
+    name
+  }
+}`
+
+const LOGIN = gql`
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password)  {
+      value
+    }
+  }
+`
+
+export { ALL_AUTHOR, ALL_BOOKS, ADD_BOOK, EDIT_AUTHOR, LOGIN }
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+</file>
+
+<file path="index.html">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>library-frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "library-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@apollo/client": "^4.2.10",
+    "graphql": "^17.0.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4"
+  }
+}
+</file>
+
+<file path="pnpm-workspace.yaml">
+allowBuilds:
+  esbuild: false
+</file>
+
+<file path="README.md">
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+</file>
+
+<file path="vite.config.js">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+</file>
+
+</files>

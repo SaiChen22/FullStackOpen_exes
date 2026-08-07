@@ -1,14 +1,12 @@
+// src/components/Authors.jsx
 import { useQuery } from '@apollo/client/react'
 import { ALL_AUTHOR } from '../queries'
-
 import SetBirthdayForm from './SetBirthdayForm'
 
+const Authors = ({ show, token }) => {
+  const authors = useQuery(ALL_AUTHOR)
 
-const Authors = (props) => {
-  const authors =useQuery(ALL_AUTHOR)
-
-
-  if (!props.show) {
+  if (!show) {
     return null
   }
 
@@ -32,7 +30,8 @@ const Authors = (props) => {
         </tbody>
       </table>
 
-      <SetBirthdayForm authors={ authors?.data?.allAuthors||[]}/>
+      {/* 仅在登录状态下显示修改出生年份的表单 */}
+      {token && <SetBirthdayForm authors={authors?.data?.allAuthors || []} />}
     </div>
   )
 }

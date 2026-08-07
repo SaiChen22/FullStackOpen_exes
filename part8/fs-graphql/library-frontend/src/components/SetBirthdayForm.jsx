@@ -24,6 +24,7 @@ const SetBirthdayForm = ({ authors }) => {
 
   return (
     <div>
+    <h3>Set birthyear</h3>
       <form onSubmit={handleUpdateAuthor}>
         <div>
           name

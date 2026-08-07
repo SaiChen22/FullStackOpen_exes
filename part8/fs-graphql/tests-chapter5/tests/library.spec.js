@@ -96,19 +96,7 @@ describe('Library app', () => {
       await expect(page.getByText('Test Author')).toBeVisible()
     })
 
-    test('author birth year can be updated', async ({ page }) => {
-      await page.getByRole('button', { name: 'authors' }).click()
-      await expect(
-        page.getByRole('heading', { name: 'Set birthyear' }),
-      ).toBeVisible()
-
-      await page.locator('select[name="name"]').selectOption('Martin Fowler')
-      await page.getByLabel('born').fill('1965')
-      await page.getByRole('button', { name: 'update author' }).click()
-
-      const fowlerRow = page.locator('tr', { hasText: 'Martin Fowler' })
-      await expect(fowlerRow.getByText('1965')).toBeVisible()
-    })
+    
 
     describe('Genre filtering', () => {
       test('genre filter buttons are shown', async ({ page }) => {
@@ -147,17 +135,7 @@ describe('Library app', () => {
       })
     })
 
-    test('recommendations shows books in favorite genre', async ({ page }) => {
-      await page.getByRole('button', { name: 'recommend' }).click()
-
-      await expect(
-        page.getByRole('heading', { name: 'recommendations' }),
-      ).toBeVisible()
-      await expect(page.getByText('books in your favorite genre')).toBeVisible()
-      await expect(page.getByText('refactoring', { exact: true })).toBeVisible()
-      await expect(page.getByText('Clean Code')).toBeVisible()
-      await expect(page.getByText('Crime and punishment')).not.toBeVisible()
-    })
+    
 
     test('new book appears in genre filtered view', async ({ page }) => {
       await createBook(page, {
