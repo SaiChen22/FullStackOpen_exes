@@ -1,8 +1,10 @@
-name: Test library-backend
+name: Test Chapter 4
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
@@ -10,21 +12,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: '20'
 
-      - name: Install library-backend dependencies
-        working-directory: library-backend
-        run: npm ci
+      - name: Install backend dependencies
+        run: |
+          cd part8/fs-graphql/library-backend
+          npm install
 
-      - name: Install test dependencies
-        working-directory: tests-chapter4
-        run: npm ci
-
-      - name: Run tests
-        working-directory: tests-chapter4
-        run: npm test
+      - name: Install test dependencies and run tests
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test_secret_key
+        run: |
+          cd part8/fs-graphql/tests-chapter4
+          npm install
+          npm test
