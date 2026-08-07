@@ -9,13 +9,13 @@
     "lint": "eslint .",
     "calculateBmi": "tsc && node bmiCalculator.ts",
     "calculateExercises": "tsc && node exerciseCalculator.ts",
-    "start": "tsc && node index.ts",
+    "start": "tsx index.ts",
     "dev": "concurrently \"tsc --watch\" \"node --watch index.ts\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devEngines": { 
+  "devEngines": {
     "packageManager": {
       "name": "pnpm",
       "version": "11.13.0",
@@ -30,6 +30,7 @@
     "@types/node": "^26.1.2",
     "concurrently": "^10.0.4",
     "eslint": "^10.8.0",
+    "tsx": "^4.23.9",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.66.0"
   },
