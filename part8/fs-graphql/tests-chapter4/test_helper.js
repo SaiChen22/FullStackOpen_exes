@@ -1,6 +1,6 @@
 import {
   ApolloServer,
-} from '../library-backend/node_modules/@apollo/server/dist/cjs/index.js'
+} from '../library-backend/node_modules/@apollo/server/dist/esm/index.js'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from '../library-backend/node_modules/mongoose/index.js'
 
@@ -11,6 +11,7 @@ import Book  from '../library-backend/models/book.js'
 import User  from '../library-backend/models/user.js'
 
 process.env.JWT_SECRET = 'test-secret-key'
+process.env.ADMIN_PASSWORD = 'secret'
 
 const initialAuthors = [
   { name: 'Robert Martin', born: 1952 },

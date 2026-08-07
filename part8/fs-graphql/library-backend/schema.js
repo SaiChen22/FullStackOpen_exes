@@ -2,6 +2,7 @@ const typeDefs = /* GraphQL */`
 	type User{
 		username: String!
 		favoriteGenre: String!
+    id: ID!
 	}
 
 	type Token{

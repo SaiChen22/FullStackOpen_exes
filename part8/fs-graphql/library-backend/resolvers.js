@@ -33,7 +33,7 @@ const resolvers = {
     bookCount: async (root) => Book.countDocuments({ author: root.id ?? root._id }),
   },
   Mutation: {
-    addBook: async (root, argsm, context) => {
+    addBook: async (root, args, context) => {
       const currentUser = context.currentUser
       if (!currentUser) {
         throw new GraphQLError('Not authenticated', {
