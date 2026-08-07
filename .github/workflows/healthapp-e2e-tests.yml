@@ -20,7 +20,7 @@ jobs:
       - name: Install healthapp dependencies
         run: |
           cd part9/fs-typescript/healthapp
-          npm install
+          npm install --legacy-peer-deps
 
       - name: Lint healthapp
         run: |
@@ -36,7 +36,7 @@ jobs:
       - name: Install test dependencies and Playwright browsers
         run: |
           cd part9/fs-typescript/healthapp-tests
-          npm install
+          npm install --legacy-peer-deps
           npx playwright install --with-deps chromium
 
       - name: Run E2E tests
