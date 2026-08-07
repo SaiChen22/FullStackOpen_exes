@@ -31,7 +31,15 @@ jobs:
         run: |
           cd part9/fs-typescript/healthapp
           npm start &
-          sleep 5
+          # 循环检测 3000 端口直到服务就绪（最多等待 30 秒）
+          for i in {1..30}; do
+            if nc -z 127.0.0.1 3000 || nc -z ::1 3000; then
+              echo "Server is up!"
+              break
+            fi
+            echo "Waiting for server..."
+            sleep 1
+          done
 
       - name: Install test dependencies and Playwright browsers
         run: |
