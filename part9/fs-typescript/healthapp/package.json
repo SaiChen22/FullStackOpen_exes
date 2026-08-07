@@ -4,17 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "tsc": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "calculateBmi": "tsc && node bmiCalculator.ts",
     "calculateExercises": "tsc && node exerciseCalculator.ts",
-    "start": "node index.ts",
+    "start": "tsc && node index.ts",
     "dev": "concurrently \"tsc --watch\" \"node --watch index.ts\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devEngines": {
+  "devEngines": { 
     "packageManager": {
       "name": "pnpm",
       "version": "11.13.0",
