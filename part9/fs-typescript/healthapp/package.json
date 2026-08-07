@@ -29,7 +29,7 @@
     "@types/node": "^26.1.2",
     "concurrently": "^10.0.4",
     "eslint": "^10.8.0",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.66.0"
   },
   "dependencies": {
