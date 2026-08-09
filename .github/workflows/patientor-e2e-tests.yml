@@ -46,10 +46,6 @@ jobs:
         working-directory: ./part9/fs-typescript/patientor/backend
         run: pnpm start &
 
-      - name: Install patientor frontend dependencies
-        working-directory: ./part9/fs-typescript/patientor/frontend
-        run: pnpm install --legacy-peer-deps
-
       - name: Build patientor frontend
         working-directory: ./part9/fs-typescript/patientor/frontend
         run: pnpm run build
