@@ -1,6 +1,8 @@
 name: Patientor E2E Tests
 
 on:
+  workflow_dispatch:
+
   push:
     branches: [main, master]
     paths:
