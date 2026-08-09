@@ -9,7 +9,6 @@ on:
       - 'part9/fs-typescript/patientor-api-tests/**'
       - 'part9/fs-typescript/patientor/backend/**'
 
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,9 +22,16 @@ jobs:
       with:
         node-version: '24'
 
+    # 1. 添加 pnpm 安装步骤
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 11
+
+    # 2. 修改后端依赖安装与脚本执行命令
     - name: Install patientor backend dependencies
       working-directory: ./part9/fs-typescript/patientor/backend
-      run: pnpm install --legacy-peer-deps
+      run: pnpm install
 
     - name: Lint patientor backend
       working-directory: ./part9/fs-typescript/patientor/backend
@@ -38,16 +44,17 @@ jobs:
         echo $! > server.pid
         sleep 3
 
+    # 3. 修改测试依赖安装与脚本执行命令
     - name: Install test dependencies
       working-directory: ./part9/fs-typescript/patientor-api-tests
       run: pnpm install
 
     - name: Install Playwright browsers
       working-directory: ./part9/fs-typescript/patientor-api-tests
-      run: pnpm dlx playwright install --with-deps chromium
+      run: pnpm exec playwright install --with-deps chromium
 
     - name: Run API tests
-      working-directory:  ./part9/fs-typescript/patientor-api-tests
+      working-directory: ./part9/fs-typescript/patientor-api-tests
       run: pnpm test
 
     - name: Upload test report
@@ -55,12 +62,12 @@ jobs:
       if: always()
       with:
         name: playwright-report
-        path: patientor-api-tests/playwright-report/
+        path: part9/fs-typescript/patientor-api-tests/playwright-report/
         retention-days: 30
 
     - name: Stop patientor backend server
       if: always()
-      working-directory: ./patientor/backend
+      working-directory: ./part9/fs-typescript/patientor/backend
       run: |
         if [ -f server.pid ]; then
           kill $(cat server.pid) || true
