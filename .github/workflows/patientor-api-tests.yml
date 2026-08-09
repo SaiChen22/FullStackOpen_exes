@@ -25,30 +25,30 @@ jobs:
 
     - name: Install patientor backend dependencies
       working-directory: ./part9/fs-typescript/patientor/backend
-      run: npm install --legacy-peer-deps
+      run: pnpm install --legacy-peer-deps
 
     - name: Lint patientor backend
       working-directory: ./part9/fs-typescript/patientor/backend
-      run: npm run lint
+      run: pnpm run lint
 
     - name: Start patientor backend server
       working-directory: ./part9/fs-typescript/patientor/backend
       run: |
-        npm start &
+        pnpm start &
         echo $! > server.pid
         sleep 3
 
     - name: Install test dependencies
       working-directory: ./part9/fs-typescript/patientor-api-tests
-      run: npm install
+      run: pnpm install
 
     - name: Install Playwright browsers
       working-directory: ./part9/fs-typescript/patientor-api-tests
-      run: npx playwright install --with-deps chromium
+      run: pnpm dlx playwright install --with-deps chromium
 
     - name: Run API tests
       working-directory:  ./part9/fs-typescript/patientor-api-tests
-      run: npm test
+      run: pnpm test
 
     - name: Upload test report
       uses: actions/upload-artifact@v5
