@@ -1,0 +1,718 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  vite.svg
+src/
+  components/
+    AddPatientModal/
+      AddPatientForm.tsx
+      index.tsx
+    PatientListPage/
+      index.tsx
+    HealthRatingBar.tsx
+  services/
+    patients.ts
+  App.tsx
+  constants.ts
+  index.css
+  main.tsx
+  types.ts
+  vite-env.d.ts
+eslint.config.js
+index.html
+package.json
+README.md
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="public/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+</file>
+
+<file path="src/components/AddPatientModal/AddPatientForm.tsx">
+import { useState, SyntheticEvent } from "react";
+
+import {  TextField, InputLabel, MenuItem, Select, Grid, Button, SelectChangeEvent } from '@mui/material';
+
+import { PatientFormValues, Gender } from "../../types";
+
+interface Props {
+  onCancel: () => void;
+  onSubmit: (values: PatientFormValues) => void;
+}
+
+interface GenderOption{
+  value: Gender;
+  label: string;
+}
+
+const genderOptions: GenderOption[] = Object.values(Gender).map(v => ({
+  value: v, label: v.toString()
+}));
+
+const AddPatientForm = ({ onCancel, onSubmit }: Props) => {
+  const [name, setName] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [ssn, setSsn] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [gender, setGender] = useState(Gender.Other);
+
+  const onGenderChange = (event: SelectChangeEvent<string>) => {
+    event.preventDefault();
+    if ( typeof event.target.value === "string") {
+      const value = event.target.value;
+      const gender = Object.values(Gender).find(g => g.toString() === value);
+      if (gender) {
+        setGender(gender);
+      }
+    }
+  };
+
+  const addPatient = (event: SyntheticEvent) => {
+    event.preventDefault();
+    onSubmit({
+      name,
+      occupation,
+      ssn,
+      dateOfBirth,
+      gender
+    });
+  };
+
+  return (
+    <div>
+      <form onSubmit={addPatient}>
+        <TextField
+          label="Name"
+          fullWidth 
+          value={name}
+          onChange={({ target }) => setName(target.value)}
+        />
+        <TextField
+          label="Social security number"
+          fullWidth
+          value={ssn}
+          onChange={({ target }) => setSsn(target.value)}
+        />
+        <TextField
+          label="Date of birth"
+          placeholder="YYYY-MM-DD"
+          fullWidth
+          value={dateOfBirth}
+          onChange={({ target }) => setDateOfBirth(target.value)}
+        />
+        <TextField
+          label="Occupation"
+          fullWidth
+          value={occupation}
+          onChange={({ target }) => setOccupation(target.value)}
+        />
+
+        <InputLabel sx={{ marginTop: 2.5 }}>Gender</InputLabel>
+        <Select
+          label="Gender"
+          fullWidth
+          value={gender}
+          onChange={onGenderChange}
+        >
+        {genderOptions.map(option =>
+          <MenuItem
+            key={option.label}
+            value={option.value}
+          >
+            {option.label
+          }</MenuItem>
+        )}
+        </Select>
+
+        <Grid container justifyContent="space-between" sx={{ marginTop: 2 }}>
+          <Grid size="auto">
+            <Button
+              color="secondary"
+              variant="contained"
+              type="button"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          </Grid>
+          <Grid size="auto">
+            <Button
+              type="submit"
+              variant="contained"
+            >
+              Add
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
+    </div>
+  );
+};
+
+export default AddPatientForm;
+</file>
+
+<file path="src/components/AddPatientModal/index.tsx">
+import { Dialog, DialogTitle, DialogContent, Divider, Alert } from '@mui/material';
+
+import AddPatientForm from "./AddPatientForm";
+import { PatientFormValues } from "../../types";
+
+interface Props {
+  modalOpen: boolean;
+  onClose: () => void;
+  onSubmit: (values: PatientFormValues) => void;
+  error?: string;
+}
+
+const AddPatientModal = ({ modalOpen, onClose, onSubmit, error }: Props) => (
+  <Dialog fullWidth={true} open={modalOpen} onClose={() => onClose()}>
+    <DialogTitle>Add a new patient</DialogTitle>
+    <Divider />
+    <DialogContent>
+      {error && <Alert severity="error">{error}</Alert>}
+      <AddPatientForm onSubmit={onSubmit} onCancel={onClose}/>
+    </DialogContent>
+  </Dialog>
+);
+
+export default AddPatientModal;
+</file>
+
+<file path="src/components/PatientListPage/index.tsx">
+import { useState } from "react";
+import { Box, Table, Button, TableHead, Typography, TableCell, TableRow, TableBody } from '@mui/material';
+import axios from 'axios';
+
+import { PatientFormValues, Patient } from "../../types";
+import AddPatientModal from "../AddPatientModal";
+
+import HealthRatingBar from "../HealthRatingBar";
+
+import patientService from "../../services/patients";
+
+interface Props {
+  patients : Patient[]
+  setPatients: React.Dispatch<React.SetStateAction<Patient[]>>
+}
+
+const PatientListPage = ({ patients, setPatients } : Props ) => {
+
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [error, setError] = useState<string>();
+
+  const openModal = (): void => setModalOpen(true);
+
+  const closeModal = (): void => {
+    setModalOpen(false);
+    setError(undefined);
+  };
+
+  const submitNewPatient = async (values: PatientFormValues) => {
+    try {
+      const patient = await patientService.create(values);
+      setPatients(patients.concat(patient));
+      setModalOpen(false);
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        if (e?.response?.data && typeof e?.response?.data === "string") {
+          const message = e.response.data.replace('Something went wrong. Error: ', '');
+          console.error(message);
+          setError(message);
+        } else {
+          setError("Unrecognized axios error");
+        }
+      } else {
+        console.error("Unknown error", e);
+        setError("Unknown error");
+      }
+    }
+  };
+
+  return (
+    <div className="App">
+      <Box>
+        <Typography align="center" variant="h6">
+          Patient list
+        </Typography>
+      </Box>
+      <Table sx={{ marginBottom: "1em" }}>
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell>Gender</TableCell>
+            <TableCell>Occupation</TableCell>
+            <TableCell>Health Rating</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {Object.values(patients).map((patient: Patient) => (
+            <TableRow key={patient.id}>
+              <TableCell>{patient.name}</TableCell>
+              <TableCell>{patient.gender}</TableCell>
+              <TableCell>{patient.occupation}</TableCell>
+              <TableCell>
+                <HealthRatingBar showText={false} rating={1} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <AddPatientModal
+        modalOpen={modalOpen}
+        onSubmit={submitNewPatient}
+        error={error}
+        onClose={closeModal}
+      />
+      <Button variant="contained" onClick={() => openModal()}>
+        Add New Patient
+      </Button>
+    </div>
+  );
+};
+
+export default PatientListPage;
+</file>
+
+<file path="src/components/HealthRatingBar.tsx">
+import { Rating } from '@mui/material';
+import { Favorite } from '@mui/icons-material';
+
+import { styled } from '@mui/material/styles';
+
+type BarProps = {
+  rating: number;
+  showText: boolean;
+};
+
+const StyledRating = styled(Rating)({
+  iconFilled: {
+    color: "#ff6d75",
+  },
+  iconHover: {
+    color: "#ff3d47",
+  }
+});
+
+const HEALTHBAR_TEXTS = [
+  "The patient is in great shape",
+  "The patient has a low risk of getting sick",
+  "The patient has a high risk of getting sick",
+  "The patient has a diagnosed condition",
+];
+
+const HealthRatingBar = ({ rating, showText }: BarProps) => {
+  return (
+    <div className="health-bar">
+      <StyledRating
+        readOnly
+        value={4 - rating}
+        max={4}
+        icon={<Favorite fontSize="inherit" />}
+      />
+
+      {showText ? <p>{HEALTHBAR_TEXTS[rating]}</p> : null}
+    </div>
+  );
+};
+
+export default HealthRatingBar;
+</file>
+
+<file path="src/services/patients.ts">
+import axios from "axios";
+import { Patient, PatientFormValues } from "../types";
+
+import { apiBaseUrl } from "../constants";
+
+const getAll = async () => {
+  const { data } = await axios.get<Patient[]>(
+    `${apiBaseUrl}/patients`
+  );
+
+  return data;
+};
+
+const create = async (object: PatientFormValues) => {
+  const { data } = await axios.post<Patient>(
+    `${apiBaseUrl}/patients`,
+    object
+  );
+
+  return data;
+};
+
+export default {
+  getAll, create
+};
+</file>
+
+<file path="src/App.tsx">
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { BrowserRouter as Router, Route, Link, Routes } from "react-router-dom";
+import { Button, Divider, Container, Typography } from '@mui/material';
+
+import { apiBaseUrl } from "./constants";
+import { Patient } from "./types";
+
+import patientService from "./services/patients";
+import PatientListPage from "./components/PatientListPage";
+
+const App = () => {
+  const [patients, setPatients] = useState<Patient[]>([]);
+
+  useEffect(() => {
+    void axios.get<void>(`${apiBaseUrl}/ping`);
+
+    const fetchPatientList = async () => {
+      const patients = await patientService.getAll();
+      setPatients(patients);
+    };
+    void fetchPatientList();
+  }, []);
+  
+  return (
+    <div className="App">
+      <Router>
+        <Container>
+          <Typography variant="h3" sx={{ marginBottom: "0.5em" }}>
+            Patientor
+          </Typography>
+          <Button component={Link} to="/" variant="contained" color="primary">
+            Home
+          </Button>
+          <Divider sx={{ marginY: 2 }} />
+          <Routes>
+            <Route path="/" element={<PatientListPage patients={patients} setPatients={setPatients} />} />
+          </Routes>
+        </Container>
+      </Router>
+    </div>
+  );
+};
+
+export default App;
+</file>
+
+<file path="src/constants.ts">
+export const apiBaseUrl = '/api';
+</file>
+
+<file path="src/index.css">
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+</file>
+
+<file path="src/main.tsx">
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <App />,
+);
+</file>
+
+<file path="src/types.ts">
+export interface Diagnosis {
+  code: string;
+  name: string;
+  latin?: string;
+}
+
+export enum Gender {
+  Male = "male",
+  Female = "female",
+  Other = "other"
+}
+
+export interface Patient {
+  id: string;
+  name: string;
+  occupation: string;
+  gender: Gender;
+  ssn?: string;
+  dateOfBirth?: string;
+}
+
+export type PatientFormValues = Omit<Patient, "id" | "entries">;
+</file>
+
+<file path="src/vite-env.d.ts">
+/// <reference types="vite/client" />
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config(
+  { ignores: ['dist'] },
+  {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+      'semi': ['error'],
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' }
+      ],
+      'no-case-declarations': 'off'
+    },
+  },
+)
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "frontend-new",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9",
+    "axios": "^1.13.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
+    "vite": "^8.0.1"
+  }
+}
+</file>
+
+<file path="README.md">
+# Patientor frontend
+
+### Getting started
+  - To get the app running just install its dependencies with ```npm install``` and run it with ```npm run dev```.
+  - The app should work without a backend, but make sure that the request made to ```/api/ping``` made on startup is successful before continuing.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+</file>
+
+<file path="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3001'
+    }
+  }
+});
+</file>
+
+</files>

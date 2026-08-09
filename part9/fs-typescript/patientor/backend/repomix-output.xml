@@ -51,6 +51,7 @@ src/
     diagoseService.ts
     patientService.ts
   index.ts
+  requests.rest
   types.ts
 .keep
 eslint.config.mjs
@@ -211,16 +212,43 @@ export default router;
 </file>
 
 <file path="src/routers/patients.ts">
-import express, {type Response} from 'express';
-import type {NonSensitivePatient} from '../types.ts';
+import express, {type Response,type Request,type NextFunction} from 'express';
+import {z} from 'zod';
+import {type NonSensitivePatient,type Patient,type NewPatient, NewPatientSchema} from '../types.ts';
 import patientService from '../services/patientService.ts';
 
 const router = express.Router();
+
+const newParitentParser = (req: Request, _res: Response, next: NextFunction) => {
+    try {
+        NewPatientSchema.parse(req.body);
+        next();
+    } catch (error) {
+        next(error);
+    }
+};
+
+const errorMiddleware = (error: unknown, _req: Request, res: Response, next: NextFunction) => {
+  if (error instanceof z.ZodError) {
+    res.status(400).send({ error: error.issues });
+  } else {
+    next(error);
+  }
+};
 
 router.get('/', (_req, res: Response<NonSensitivePatient[]>) => {
     const nonSenstivePatient = patientService.getPatients();
     res.json(nonSenstivePatient);
 });
+
+router.post('/', newParitentParser
+    ,(req: Request<unknown,unknown,NewPatient>, res: Response<Patient>) => {
+    const { name, dateOfBirth, ssn, gender, occupation } = req.body;
+    const newPatient = patientService.addPatient({ name, dateOfBirth, ssn, gender, occupation });
+    res.json(newPatient);
+});
+
+router.use(errorMiddleware);
 
 export default router;
 </file>
@@ -235,8 +263,10 @@ export const getDiagnoses = (): Diagonsis[] => {
 </file>
 
 <file path="src/services/patientService.ts">
-import type { NonSensitivePatient } from '../types.ts';
+import type { NonSensitivePatient, Patient ,NewPatient} from '../types.ts';
 import data from '../../data/patients.ts';
+
+import {v1 as uuid} from 'uuid';
 
 const getPatients = (): NonSensitivePatient[] => {
     return data.map((patient) => {
@@ -252,7 +282,16 @@ const getPatients = (): NonSensitivePatient[] => {
 
 };
 
-export default { getPatients };
+const addPatient = (entry: NewPatient): Patient => {
+    const newPatient: Patient = {
+        id: uuid(),
+        ...entry
+    };
+    data.push(newPatient);
+    return newPatient;
+};
+
+export default { getPatients, addPatient };
 </file>
 
 <file path="src/index.ts">
@@ -277,21 +316,51 @@ app.listen(PORT, () => {
 });
 </file>
 
+<file path="src/requests.rest">
+POST http://localhost:3001/api/patients
+ Content-Type: application/json
+
+ {
+   "name": "John Doe",
+   "dateOfBirth": "1990-01-01",
+   "ssn": "123-45-6789",
+   "gender": "male",
+   "occupation": "software engineer"
+ }
+</file>
+
 <file path="src/types.ts">
+import { z } from 'zod';
+
 export interface Diagonsis {
   code: string;
   name: string;
   latin?: string;
-};  
+}
 
-export interface Patient {
+export const Gender = {
+  Male: 'male',
+  Female: 'female',
+  Other: 'other',
+} as const;
+
+export type Gender = typeof Gender[keyof typeof Gender];
+
+
+export const NewPatientSchema = z.object({
+  name: z.string(),
+  dateOfBirth: z.string(),
+  ssn: z.string(),
+  gender: z.enum(['male', 'female', 'other']),
+  occupation: z.string(),
+});
+
+
+export type NewPatient = z.infer<typeof NewPatientSchema>;
+
+export interface Patient extends NewPatient {
   id: string;
-  name: string;
-  dateOfBirth: string;
-  ssn: string;
-  gender: string;
-  occupation: string;
-};
+}
 
 export type NonSensitivePatient = Omit<Patient, 'ssn'>;
 </file>
@@ -368,10 +437,12 @@ export default tseslint.config({
     "concurrently": "^10.0.4",
     "eslint": "^10.8.0",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.66.0"
+    "typescript-eslint": "^8.66.0",
+    "uuid": "^14.0.1"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "zod": "^4.4.3"
   }
 }
 </file>

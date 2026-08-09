@@ -8,3 +8,20 @@
    "gender": "male",
    "occupation": "software engineer"
  }
+
+###
+
+POST http://localhost:3001/api/patients/d2773336-f723-11e9-8f0b-362b9e155667/entries
+Content-Type: application/json
+
+{
+  "type": "Hospital",
+  "description": "Follow-up treatment",
+  "date": "2026-08-09",
+  "specialist": "Dr. Smith",
+  "diagnosisCodes": ["M24.2"],
+  "discharge": {
+    "date": "2026-08-10",
+    "criteria": "Patient is stable"
+  }
+}
