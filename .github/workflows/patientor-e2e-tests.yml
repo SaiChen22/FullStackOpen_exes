@@ -34,17 +34,13 @@ jobs:
 
       # 3. 修改前端依赖安装（如果适用）
       - name: Install patientor frontend dependencies
-        working-directory: ./part9/fs-typescript/patientor
+        working-directory: ./part9/fs-typescript/patientor/frontend
         run: pnpm install
 
     # 4. 修改 E2E / API 测试依赖安装与运行
       - name: Install E2E test dependencies
         working-directory: ./part9/fs-typescript/patientor-api-tests
         run: pnpm install
-
-      - name: Install patientor backend dependencies
-        working-directory: ./part9/fs-typescript/patientor/backend
-        run: pnpm install --legacy-peer-deps
 
       - name: Start patientor backend
         working-directory: ./part9/fs-typescript/patientor/backend
