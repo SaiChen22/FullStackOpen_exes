@@ -2,9 +2,13 @@ name: Patientor API Tests
 
 on:
   workflow_dispatch:
-    
+
   push:
     branches: [ xmain, xmaster ]
+    paths:
+      - 'part9/fs-typescript/patientor-api-tests/**'
+      - 'part9/fs-typescript/patientor/backend/**'
+
 
 jobs:
   test:
