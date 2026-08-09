@@ -19,21 +19,42 @@ jobs:
         with:
           node-version: "24"
 
+      # 1. 添加 pnpm 安装步骤
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      # 2. 修改后端依赖安装
       - name: Install patientor backend dependencies
         working-directory: ./part9/fs-typescript/patientor/backend
-        run: npm install --legacy-peer-deps
+        run: pnpm install
+
+      # 3. 修改前端依赖安装（如果适用）
+      - name: Install patientor frontend dependencies
+        working-directory: ./part9/fs-typescript/patientor
+        run: pnpm install
+
+    # 4. 修改 E2E / API 测试依赖安装与运行
+      - name: Install E2E test dependencies
+        working-directory: ./part9/fs-typescript/patientor-api-tests
+        run: pnpm install
+
+      - name: Install patientor backend dependencies
+        working-directory: ./part9/fs-typescript/patientor/backend
+        run: pnpm install --legacy-peer-deps
 
       - name: Start patientor backend
         working-directory: ./part9/fs-typescript/patientor/backend
-        run: npm start &
+        run: pnpm start &
 
       - name: Install patientor frontend dependencies
         working-directory: ./part9/fs-typescript/patientor/frontend
-        run: npm install --legacy-peer-deps
+        run: pnpm install --legacy-peer-deps
 
       - name: Build patientor frontend
         working-directory: ./part9/fs-typescript/patientor/frontend
-        run: npm run build
+        run: pnpm run build
 
       - name: Start patientor frontend preview
         working-directory: ./part9/fs-typescript/patientor/frontend
