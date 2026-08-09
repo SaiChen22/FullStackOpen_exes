@@ -1,6 +1,8 @@
 name: Patientor API Tests
 
 on:
+  workflow_dispatch:
+    
   push:
     branches: [ xmain, xmaster ]
 
